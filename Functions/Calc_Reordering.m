@@ -6,7 +6,7 @@ function [ReorderPE1,ReorderPE2] = Calc_Reordering(settings)
 % First reorder PE1
 % Determine which line is the centre (i.e. not the centre of Matrix_Size for partial Fourier)
 Centre_Line = ceil(settings.PE1_Resolution*(settings.Matrix_Size(1)/2 - (settings.Matrix_Size(1)*(1-settings.PE1_Partial_Fourier)))); % (zero-indexed)
-A = Centre_Line+1:1:(round(settings.PE1_Resolution*settings.PE1_Partial_Fourier*settings.Matrix_Size(1))-1);
+A = Centre_Line+1:1:(settings.Scan_Size(1)-1);
 B = (Centre_Line)-1:-1:0;
 N = min(numel(A),numel(B));
 if strcmp(settings.PE1_Reordering,'CentricOut')

@@ -1,6 +1,10 @@
 function [settings] = sa2rage_settings(settings)
 settings.title_string = 'c) SA2RAGE';
 
+if strcmpi(settings.MSor3D,'default')
+    settings.MSor3D = '3D'; % Set the 'default' scheme
+end
+
 settings.nomIT1_FA = 4*pi/180; % Nominal Image Train 1 Flip Angle in Radians
 settings.nomIT2_FA = 11*pi/180; % Nominal Image Train 2 Flip Angle in Radians
 settings.IT_RF_Type = 'RECT';
@@ -9,13 +13,15 @@ settings.IT_RF_TBP = 'NA';
 settings.IT1_RF_Pulse = Get_RF_Pulse(settings.nomIT1_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
 settings.IT2_RF_Pulse = Get_RF_Pulse(settings.nomIT2_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
 
+settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
+settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
+settings.Slice_Order_Type = 'Linear';
+
 settings.nomPP_FA = 90*pi/180; % Nominal Saturation Flip Angle in Radians
 settings.PP_RF_Type = 'RECT';
 settings.PP_RF_Time = 0.5e-3; % Time for Preparation RF pulse
 settings.PP_RF_TBP = 'NA'; % Time bandwidth product
 settings.PP_RF_Pulse = Get_RF_Pulse(settings.nomPP_FA,settings.PP_RF_Type,settings.PP_RF_Time,settings.PP_RF_TBP,settings.Ref_Voltage);
-
-settings.Slice_Order_Type = 'Linear';
 
 settings.TD2 = 1800e-3; % Time delay 2 (s) (TD1 is unused as block immediantly follows saturation)
 settings.IT_TE = 1.13e-3; % Image Train Echo Time (s)

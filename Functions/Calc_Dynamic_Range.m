@@ -3,7 +3,7 @@ function [Dynamic_Range,first_last_values] = Calc_Dynamic_Range(results,settings
 % Dynamic range defined as linear range where the difference in the mean
 % flip angle and standard deviation is less than settings.percent_under% of the nominal value
 
-if strcmp(settings.Scheme,'AFI')
+if strcmpi(settings.Scheme,'AFI')
     x_axis = settings.Dynamic_Range.*settings.nomFA*(180/pi);
 else
     x_axis = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
@@ -11,12 +11,12 @@ end
 x_axis = permute(x_axis,[4 3 1 2]);
 
 % Mean Range
-Mean_FA = mean(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,:,:),[6,8]); % On resonance, average T1s and repeats
+Mean_FA = mean(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,:,:,:,:),[6,8]); % On resonance, average T1s and repeats
 Mean_full_range = find(abs(Mean_FA - x_axis) < (x_axis*plot_settings.Dyn_Range_pc)); % remove gradient and find values below percent_under
 
 
 % SD Range
-SD_FA = std(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,:,:),[],[6,8]); % On resonance, average T1s and repeats
+SD_FA = std(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,:,:,:,:),[],[6,8]); % On resonance, average T1s and repeats
 SD_full_range = find(abs(SD_FA) < (x_axis*plot_settings.Dyn_Range_pc));
 
 

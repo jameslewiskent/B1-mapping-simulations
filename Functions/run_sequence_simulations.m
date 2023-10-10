@@ -1,4 +1,4 @@
-function [results,settings] = run_sequence_simulations(settings)
+function [results,settings] = run_sequence_simulations(settings,results)
 % Function handles iterating through scheme(s) to simulate and hands over to analysing
 % data in analysis_function_core.
 %
@@ -6,7 +6,7 @@ function [results,settings] = run_sequence_simulations(settings)
 
 settings.Scan_Size(1) = round(settings.PE1_Resolution*settings.PE1_Partial_Fourier*settings.Matrix_Size(1));
 settings.Scan_Size(2) = round(settings.PE2_Resolution*settings.PE2_Partial_Fourier*settings.Matrix_Size(2));
-settings = Calc_Slice_Shifts(settings);
+settings = Calc_Slice_Shifts(settings); % Calculate Slice Shifts for MS sequences
 settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 
 settings.filepath = fullfile('Data',settings.Scheme);
@@ -16,8 +16,6 @@ end
     
 % Load sequence specific settings
 settings = load_sequence_settings(settings);
-
-plot_rf_pulses(settings)
 
 % Calculate slice ordering
 settings = Calc_Slice_Order(settings);
@@ -29,15 +27,16 @@ if already_ran % Don't re-simulate if input parameters unchanged
     disp('Input parameters unchanged - results not re-simulated.')
     load(fullfile(settings.filepath,filename),'results','settings')  
 else % Simulate sequence
-    if strcmp(settings.Scheme,'SatTFL')
+    disp('Starting Simulations')
+    if strcmpi(settings.Scheme,'SatTFL')
         [simulation_results,settings] = epg_sattfl(settings);
-    elseif strcmp(settings.Scheme,'Sandwich')
+    elseif strcmpi(settings.Scheme,'Sandwich')
         [simulation_results,settings] = epg_sandwich(settings);
-    elseif strcmp(settings.Scheme,'SA2RAGE')
+    elseif strcmpi(settings.Scheme,'SA2RAGE')
         [simulation_results,settings] = epg_sa2rage(settings);
-    elseif strcmp(settings.Scheme,'AFI')
+    elseif strcmpi(settings.Scheme,'AFI')
         [simulation_results,settings] = epg_afi(settings);
-    elseif strcmp(settings.Scheme,'DREAM')
+    elseif strcmpi(settings.Scheme,'DREAM')
         [simulation_results,settings] = epg_dream(settings);
     else
         error('ABORTED: Scheme not recognised, please input either ''SatTFL'', ''Sandwich'', ''DREAM'', ''AFI'', ''SA2RAGE'' OR ''ALL''.')
@@ -46,23 +45,23 @@ else % Simulate sequence
     
     % Process simulation results
     % Call for however modes are required
-    [results] = analysis_function_core(simulation_results, settings);
+    [results] = analysis_function_core(simulation_results, settings,results);
     filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y-HH-mm')),'.mat'];
     save(fullfile(settings.filepath,filename),'results','settings')     
 end
 
 % Display some energy statistics
 Pulses_string = 'Consisting of ';
-if isfield(results,'N_imaging_RF')
+if isfield(results,'N_imaging_RF') && results.N_imaging_RF ~= 0
 Pulses_string =  [Pulses_string,num2str(results.N_imaging_RF),' imaging RF pulses'];
 end
-if isfield(results,'N_imaging_RF1')
+if isfield(results,'N_imaging_RF1') && results.N_imaging_RF1 ~= 0
 Pulses_string =  [Pulses_string,num2str(results.N_imaging_RF1),' imaging RF1 pulses'];
 end
-if isfield(results,'N_imaging_RF2')
+if isfield(results,'N_imaging_RF2') && results.N_imaging_RF2 ~= 0
 Pulses_string =  [Pulses_string,', ',num2str(results.N_imaging_RF2),' imaging RF2 pulses'];
 end
-if isfield(results,'N_prep_RF')
+if isfield(results,'N_prep_RF') && results.N_prep_RF ~= 0
 Pulses_string = [Pulses_string,', ',num2str(results.N_prep_RF),' preparation RF pulses'];
 end
 disp([settings.Scheme,' Sequence acquisition time = ',num2str(results.Cumulative_Time),' s. ',Pulses_string,'.'])

@@ -1,10 +1,10 @@
-function settings = Check_Mag_Track_Flag(Dynamic_Range_n,T1_n,B0_n,settings)
+function settings = Check_Mag_Track_Flag(Dynamic_Range_n,T1_n,B0_n,Flow_n,Diff_n,settings)
 % Check if magnetisation tracking should be enabled
 
 % Range of FA values
-if ~strcmp(settings.Scheme,'AFI')
+if ~strcmpi(settings.Scheme,'AFI')
 FARange = settings.Dynamic_Range*settings.nomPP_FA*(180/pi);
-elseif strcmp(settings.Scheme,'AFI')
+elseif strcmpi(settings.Scheme,'AFI')
 FARange = settings.Dynamic_Range*settings.nomFA*(180/pi);
 end
 
@@ -12,12 +12,15 @@ end
 % magnetisation tracking
 Mag_Track_DRValues = zeros(1,size(settings.Mag_Track_FAValues,2));
 for FA_n = 1:size(settings.Mag_Track_FAValues,2)
-    [~,Mag_Track_DRValues(FA_n)] = min(abs(settings.Mag_Track_FAValues(FA_n) - FARange));
+    [min_val,Mag_Track_DRValues(FA_n)] = min(abs(settings.Mag_Track_FAValues(FA_n) - FARange));
+    if min_val > 10
+        Mag_Track_DRValues(FA_n) = nan;
+    end
 end
 
-if any(Mag_Track_DRValues == Dynamic_Range_n) && any(settings.Mag_Track_T1Values == settings.T1s(T1_n)) && settings.B0_Range_Hz(B0_n) == 0
+if any(Mag_Track_DRValues == Dynamic_Range_n) && any(settings.Mag_Track_T1Values == settings.T1s(T1_n)) && settings.B0_Range_Hz(B0_n) == 0 && settings.Velocities(Flow_n) == 0 && settings.Diff_coeffs(Diff_n) == 0
 settings.Mag_Track_Flags = Mag_Track_DRValues == Dynamic_Range_n;
-disp('Tracking Magnetisation')
+%disp('Tracking Magnetisation')
 else
 settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 end

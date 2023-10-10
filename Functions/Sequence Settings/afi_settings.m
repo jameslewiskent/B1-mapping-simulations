@@ -1,13 +1,24 @@
 function [settings] = afi_settings(settings)
 settings.title_string = 'd) AFI';
 
+if strcmpi(settings.MSor3D,'default')
+    settings.MSor3D = '3D'; % Set the 'default' scheme
+end
+
+if strcmp(settings.MSor3D,'3D')
 settings.nomFA = 60*pi/180;
 settings.RF_Type = 'RECT'; % Check this! Sinc Pulse TBP 3khz
 settings.RF_Time = 0.5e-3;
 settings.RF_TBP = 'NA';
 settings.RF_Pulse = Get_RF_Pulse(settings.nomFA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
+settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
+settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
 settings.Slice_Order_Type = 'Linear';
+
+elseif strcmp(settings.MSor3D,'2D')
+error('There is no 2D Multislice AFI defined!')
+end
 
 settings.TR1 = 20e-3; %
 settings.TR2 = 100e-3; %

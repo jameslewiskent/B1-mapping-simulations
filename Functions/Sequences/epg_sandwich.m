@@ -32,7 +32,7 @@ if settings.UseSyntheticData == 1
     %                     IT_FA = (PP_FA./FAratio);
     %                 end
     %                 RF_Phase = angle(conj(settings.Tx_FA_map(indi,indj,:))); % RF Phase from synthetic data (adds to RF spoiling in sim) (radians)
-    %                 [IT1(:,indi,indj,:),IT2(:,indi,indj,:),Cumulative_Time,Total_Energy(Dynamic_Range_n),N_imaging_RF,N_prep_RF] = Sandwich_Seq(PP_FA,IT_FA,TR,T1,T2,IT_TR,IT_TE,settings.Train_Size,rf_spoiling_phases,kg,settings.Diff_co,settings.Velocity,settings.Angle,prep_spoils,train_spoils,noadd,man_spoil,HR_TR,Dummy_Scans,Ejection_Frac,magtrack_flag,Segment_Sizes,nFreqSamples,Tx_FA_map,RF_Phase);
+    %                 [IT1(:,indi,indj,:),IT2(:,indi,indj,:),Cumulative_Time,Total_Energy(Dynamic_Range_n),N_imaging_RF,N_prep_RF] = Sandwich_Seq(PP_FA,IT_FA,TR,T1,T2,IT_TR,IT_TE,settings.Train_Size,rf_spoiling_phases,kg,settings.Diff_co,Velocity,Angle,prep_spoils,train_spoils,noadd,man_spoil,HR_TR,Dummy_Scans,Ejection_Frac,magtrack_flag,Segment_Sizes,nFreqSamples,Tx_FA_map,RF_Phase);
     %             end
     %         end
     %
@@ -46,14 +46,21 @@ else
     Total_Energy = zeros(1,length(settings.Dynamic_Range));
     for Dynamic_Range_n = 1:length(settings.Dynamic_Range)
         for T1_n = 1:length(settings.T1s)
+            T1 = settings.T1s(T1_n);
             for B0_n = 1:length(settings.B0_Range_Hz)
-                T1 = settings.T1s(T1_n);
-                IT_FAs = Simulate_RF_Pulse(settings.Hz_per_Volt*settings.Dynamic_Range(Dynamic_Range_n)*settings.IT_RF_Pulse,settings.IT_RF_Time,settings.B0_Range_Hz(B0_n)+settings.Slice_Shifts,T1,settings.T2,settings.Gamma); % Output FA in radians
-                PP_FAs = Simulate_RF_Pulse(settings.Hz_per_Volt*settings.Dynamic_Range(Dynamic_Range_n)*settings.PP_RF_Pulse,settings.PP_RF_Time,settings.B0_Range_Hz(B0_n)+settings.PP_Shifts,T1,settings.T2,settings.Gamma); % Output FA in radians
-                settings = Check_Mag_Track_Flag(Dynamic_Range_n,T1_n,B0_n,settings);
-                [IT1(:,:,:,Dynamic_Range_n,B0_n,T1_n),IT2(:,:,:,Dynamic_Range_n,B0_n,T1_n),Cumulative_Time,N_imaging_RF,N_prep_RF,seq_TRs(:,Dynamic_Range_n,B0_n,T1_n),Mag_Track] = Sandwich_Seq(T1,IT_FAs,PP_FAs,settings); % Simulate sequence
-                if any(settings.Mag_Track_Flags == 1)
-                    simulation_results.Mag_Track{settings.Mag_Track_Flags == 1} = Mag_Track;
+                for Flow_n = 1:length(settings.Velocities)
+                    Velocity = settings.Velocities(Flow_n);
+                    Angle = settings.Angles(Flow_n);
+                    for Diff_n = 1:length(settings.Diff_coeffs)
+                        Diff_co = settings.Diff_coeffs(Diff_n);
+                        IT_FAs = Simulate_RF_Pulse(settings.Hz_per_Volt*settings.Dynamic_Range(Dynamic_Range_n)*settings.IT_RF_Pulse,settings.IT_RF_Time,settings.B0_Range_Hz(B0_n)+settings.Slice_Shifts,T1,settings.T2,settings.Gamma); % Output FA in radians
+                        PP_FAs = Simulate_RF_Pulse(settings.Hz_per_Volt*settings.Dynamic_Range(Dynamic_Range_n)*settings.PP_RF_Pulse,settings.PP_RF_Time,settings.B0_Range_Hz(B0_n)+settings.PP_Shifts,T1,settings.T2,settings.Gamma); % Output FA in radians
+                        settings = Check_Mag_Track_Flag(Dynamic_Range_n,T1_n,B0_n,Flow_n,Diff_n,settings);
+                        [IT1(:,:,:,Dynamic_Range_n,B0_n,T1_n,Flow_n,Diff_n),IT2(:,:,:,Dynamic_Range_n,B0_n,T1_n,Flow_n,Diff_n),Cumulative_Time,N_imaging_RF,N_prep_RF,seq_TRs(:,Dynamic_Range_n,B0_n,T1_n),Mag_Track] = Sandwich_Seq(T1,IT_FAs,PP_FAs,Velocity,Angle,Diff_co,settings); % Simulate sequence
+                        if any(settings.Mag_Track_Flags == 1)
+                            simulation_results.Mag_Track{settings.Mag_Track_Flags == 1} = Mag_Track;
+                        end
+                    end
                 end
             end
         end
@@ -65,7 +72,7 @@ end
 Average_10s_Power = 10*Total_Energy./Cumulative_Time;
 
 % Sequence Function
-    function [Train1,Train2,Cumulative_Time,N_imaging_RF,N_prep_RF,seq_TRs,Mag_Track] = Sandwich_Seq(T1,IT_FAs,PP_FAs,settings)
+    function [Train1,Train2,Cumulative_Time,N_imaging_RF,N_prep_RF,seq_TRs,Mag_Track] = Sandwich_Seq(T1,IT_FAs,PP_FAs,Velocity,Angle,Diff_co,settings)
         % Function runs inside relevent epg_SCHEME function and simulates a single set of image trains for specified parameters.
         
         P = [0 0 1]'; % Start magnetisation in equilibrium
@@ -114,8 +121,8 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 % Dummy RF prior to image train
                 for Dummy_RF = 1:settings.Dummy_ITRF
                     N_imaging_RF = N_imaging_RF +1;
-                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(settings.Slice_Order(Dummy_n)),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
-                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,settings.Diff_co,0,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation no spoiling (FpFmZ,T1,T2,RelaxTime,kg,Diff_co,Gon,noadd)
+                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(settings.Slice_Order(jk_mod(Dummy_n,size(settings.Slice_Order,2)))),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
+                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling (FpFmZ,T1,T2,RelaxTime,kg,Diff_co,Gon,noadd)
                     for i = 1:settings.train_spoils(settings.Segment_Sizes(1))
                         P = epg_grad(P); % spoiling
                     end
@@ -127,9 +134,9 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 for IT_n = 1:settings.Segment_Sizes(1)
                     N_imaging_RF = N_imaging_RF +1;
                     
-                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(settings.Slice_Order(Dummy_n)),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
+                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(settings.Slice_Order(jk_mod(Dummy_n,size(settings.Slice_Order,2)))),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
                     
-                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,settings.Diff_co,0,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation no spoiling
+                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                     
                     % Dummy Scans not stored
                     for i = 1:settings.train_spoils(IT_n)
@@ -144,7 +151,7 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 
                 % Pre-pulse for dummy scans
                 N_prep_RF = N_prep_RF +1;
-                [P,~,Mag_Track] = epg_rf(P,PP_FAs(settings.Slice_Order(Dummy_n)),settings.RF_Phase(Mode_n),settings.PP_RF_Time,Mag_Track,settings);
+                [P,~,Mag_Track] = epg_rf(P,PP_FAs(settings.Slice_Order(jk_mod(Dummy_n,size(settings.Slice_Order,2)))),settings.RF_Phase(Mode_n),settings.PP_RF_Time,Mag_Track,settings);
                 Cumulative_Time = Cumulative_Time + settings.PP_RF_Time;
                 for i = 1:settings.prep_spoils(N_prep_RF)
                     P = epg_grad(P); % spoiling
@@ -156,9 +163,9 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 % Pretend image trains
                 for IT_n = 1:settings.Segment_Sizes(1)
                     N_imaging_RF = N_imaging_RF +1;
-                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(settings.Slice_Order(Dummy_n)),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
+                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(settings.Slice_Order(jk_mod(Dummy_n,size(settings.Slice_Order,2)))),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
                     
-                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,settings.Diff_co,0,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation no spoiling
+                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                     
                     % Dummy Scans not stored
                     for i = 1:settings.train_spoils(IT_n)
@@ -172,7 +179,7 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 
                 % Relaxation between dummy scans
                 T_relax = seq_TRs(1,Dummy_n) - settings.PP_RF_Time - (2*settings.Segment_Sizes(1).*settings.IT_TR) - settings.Dummy_ITRF*settings.IT_TR; % Time for Relaxation (s)
-                [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,settings.Diff_co,1,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation + spoiling
+                [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,Diff_co,1,0,Velocity,Angle,Mag_Track,settings); % relaxation + spoiling
                 Cumulative_Time = Cumulative_Time + T_relax;
             end
         end % End of Dummy Scans
@@ -193,7 +200,7 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                     for Dummy_RF = 1:settings.Dummy_ITRF
                         N_imaging_RF = N_imaging_RF +1;
                         [P,~,Mag_Track] = epg_rf(P,IT_FAs(Slice_n),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
-                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,settings.Diff_co,0,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation no spoiling (FpFmZ,T1,T2,RelaxTime,kg,Diff_co,Gon,noadd)
+                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling (FpFmZ,T1,T2,RelaxTime,kg,Diff_co,Gon,noadd)
                         for i = 1:settings.train_spoils(settings.Segment_Sizes(Segment_n))
                             P = epg_grad(P); % spoiling
                         end
@@ -206,11 +213,11 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                         N_imaging_RF = N_imaging_RF +1;
                         [P,~,Mag_Track] = epg_rf(P,IT_FAs(Slice_n),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
                         
-                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TE,settings.kg,settings.Diff_co,0,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation no spoiling
+                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                         
                         Train1(IT_n,Slice_n,Mode_n) = P(1,1).*exp(-1i*settings.rf_spoiling_phases(N_imaging_RF)); % Store Phase-Demodulated 'signal' F+0
                         
-                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,IT_rTE,settings.kg,settings.Diff_co,0,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation no spoiling
+                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,IT_rTE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                         
                         for i = 1:settings.train_spoils(settings.Segment_Sizes(Segment_n))
                             P = epg_grad(P); % spoiling
@@ -240,11 +247,11 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                         N_imaging_RF = N_imaging_RF +1;
                         [P,~,Mag_Track] = epg_rf(P,IT_FAs(Slice_n),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF),settings.IT_RF_Time,Mag_Track,settings);
                         
-                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TE,settings.kg,settings.Diff_co,0,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation no spoiling
+                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                         
                         Train2(IT_n,Slice_n,Mode_n) = P(1,1).*exp(-1i*settings.rf_spoiling_phases(N_imaging_RF)); % Store Phase-Demodulated 'signal' F+0
                         
-                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,IT_rTE,settings.kg,settings.Diff_co,0,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation no spoiling
+                        [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,IT_rTE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                         
                         for i = 1:settings.train_spoils(settings.Segment_Sizes(Segment_n))
                             P = epg_grad(P); % spoiling
@@ -264,7 +271,7 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                     
                     % Relaxation
                     T_relax = seq_TRs(1,settings.Dummy_Scans+Segment_n) - settings.PP_RF_Time - (2*settings.Segment_Sizes(Segment_n).*settings.IT_TR) - settings.Dummy_ITRF*settings.IT_TR; % Time for Relaxation (s)
-                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,settings.Diff_co,1,0,settings.Velocity,settings.Angle,Mag_Track,settings); % relaxation + spoiling
+                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,Diff_co,1,0,Velocity,Angle,Mag_Track,settings); % relaxation + spoiling
                     Cumulative_Time = Cumulative_Time + T_relax;
                     if settings.man_spoil == 1
                         P = [0 0 P(3,1)]'; % manual spoiling

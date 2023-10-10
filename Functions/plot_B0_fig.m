@@ -14,7 +14,6 @@ else
     Dynamic_Range_Values = 1;
     Axis_Values = Nominal_FA;
 end
-ah = axes;
 
 if plot_settings.Plot_Difference == 1
     Subtract_Linear = Axis_Values;
@@ -32,18 +31,18 @@ for B0_n = 1:size(settings.B0_Range_Hz,2)
 end
 grid on
 axis square
-lgd = legend(ah,sprintfc('%g', settings.B0_Range_Hz/1e3),'Location','NorthWest','Orientation','vertical');
+lgd = legend(sprintfc('%g', settings.B0_Range_Hz/1e3),'Location','NorthWest','Orientation','vertical');
 lgd.Title.String = '\Deltaf_0 (kHz)';
 title(settings.title_string,'Fontsize',16);
 
 if plot_settings.Dynamic_Range_Axis == 1 && plot_settings.Plot_Difference == 0
-    xlabel('Applied Dynamic Range, [a.u.]'); xticks(1:12)
+    xlabel('Applied Dynamic Range, [a.u.]'); xticks(1:10)
     ylabel('Measured Dynamic Range, [a.u.]');
-    xlim([0 12]); ylim([0 12]);
+    xlim([0 10]); ylim([0 10]);
 elseif plot_settings.Dynamic_Range_Axis == 1 && plot_settings.Plot_Difference == 1
-    xlabel('Applied Dynamic Range, [a.u.]'); xticks(1:12)
+    xlabel('Applied Dynamic Range, [a.u.]'); xticks(1:10)
     ylabel('[Measured - Applied] Dynamic Range, [a.u.]');
-    xlim([0 12]); ylim([-3 3]);
+    xlim([0 10]); ylim([-1 1]);
 elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference == 0
     xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:220)
     ylabel(['Measured FA, [',char(176),']']);

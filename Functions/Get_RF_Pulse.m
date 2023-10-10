@@ -7,7 +7,7 @@ if nomFA == 0
 end
 
 % Get pulse shape
-if strcmp(RF_Pulse_Type,'RECT')
+if strcmpi(RF_Pulse_Type,'RECT')
     RF_Pulse_Shape = ones(1,RF_Samples); 
 elseif strcmp(RF_Pulse_Type,'SINC') || strcmp(RF_Pulse_Type,'wSINC')
     RF_Pulse_Shape = sinc(linspace(-ceil(TBP/2),floor(TBP/2),RF_Samples));
@@ -15,9 +15,9 @@ elseif strcmp(RF_Pulse_Type,'SINC') || strcmp(RF_Pulse_Type,'wSINC')
     if strcmp(RF_Pulse_Type,'wSINC')
         RF_Pulse_Shape = RF_Pulse_Shape.*hann(size(RF_Pulse_Shape,2))';
     end
-elseif strcmp(RF_Pulse_Type,'GAUSS')
+elseif strcmpi(RF_Pulse_Type,'GAUSS')
     error('GAUSS RF PULSE NOT YET DEFINED');
-elseif strcmp(RF_Pulse_Type(1:2),'HS')
+elseif strcmpi(RF_Pulse_Type(1:2),'HS')
     HSN = str2double(RF_Pulse_Type(3));
     RF_Pulse_Shape = Get_HSN(HSN,TBP); % Scaled relative to RECT
     RF_Samples = 1024; % Hard set in Get_HSN
