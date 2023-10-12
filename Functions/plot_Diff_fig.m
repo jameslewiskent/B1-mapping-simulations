@@ -1,5 +1,5 @@
-function plot_B0_fig(results,settings,plot_settings)
-% B0  plot
+function plot_Diff_fig(results,settings,plot_settings)
+% Diffusion  plot
 
 if strcmpi(settings.Scheme,'AFI')
     Nominal_FA = settings.Dynamic_Range.*settings.nomFA*(180/pi);
@@ -26,16 +26,16 @@ end
 cmap = sixcolourmap;
 Styles = {'-','--','-.',':'};
 Noise_n = 1;
+B0_n = 1;
 T1_n = 3;
 Flow_n = 1;
-Diff_n = 1;
-for B0_n = 1:size(settings.B0_Range_Hz,2)
-    plot(Axis_Values,squeeze(mean(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),10))/Dynamic_Range_Value - Subtract_Linear','color',cmap(T1_n,:),'linewidth',1.5,'LineStyle',Styles{B0_n});    hold on
+for Diff_n = 1:size(settings.Diff_coeffs,2)
+    plot(Axis_Values,squeeze(mean(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),10))/Dynamic_Range_Value - Subtract_Linear','color',cmap(T1_n,:),'linewidth',1.5,'LineStyle',Styles{Diff_n});    hold on
 end
 grid on
 axis square
-lgd = legend(sprintfc('%g', settings.B0_Range_Hz/1e3),'Location','NorthWest','Orientation','vertical');
-lgd.Title.String = '\Deltaf_0 (kHz)';
+lgd = legend(sprintfc('%g', settings.Diff_coeffs),'Location','NorthWest','Orientation','vertical');
+lgd.Title.String = 'Diffusion Coeff. (m^2s^{-1})';
 title(settings.title_string,'Fontsize',16);
 
 if plot_settings.Dynamic_Range_Axis == 1 && plot_settings.Plot_Difference == 0

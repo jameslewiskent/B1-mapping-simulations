@@ -41,9 +41,9 @@ end
 clearvars IT1 IT2 Reorder
 
 if settings.UseSyntheticData == 0
-% Select Centre slice
-Reordered_IT1 = Reordered_IT1(:,settings.Centre_Slice,:,:,:,:,:,:);
-Reordered_IT2 = Reordered_IT2(:,settings.Centre_Slice,:,:,:,:,:,:);
+    % Select Centre slice
+    Reordered_IT1 = Reordered_IT1(:,settings.Centre_Slice,:,:,:,:,:,:);
+    Reordered_IT2 = Reordered_IT2(:,settings.Centre_Slice,:,:,:,:,:,:);
 end
 
 % Add zero-mean complex Gaussian noise independently to each reordered IT
@@ -114,35 +114,35 @@ FWHM = zeros([2,size(FT_IT1,4:ndims(FT_IT1))]);
 for Dynamic_Range_n = 1:size(FT_IT1,4)
     for B0_Range_n = 1:size(FT_IT1,5)
         for T1_n = 1:size(FT_IT1,6)
-                            for Flow_n = 1:size(FT_IT1,7)
-                    for Diff_n = 1:size(FT_IT1,8)
-            for Noise_n = 1:size(FT_IT1,9)
-                for Repeat_n = 1:size(FT_IT1,10)
-                    FWHM(1,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n) = findFWHM(FT_IT1(:,:,:,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n));
-                    FWHM(2,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n) = findFWHM(FT_IT2(:,:,:,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n));
+            for Flow_n = 1:size(FT_IT1,7)
+                for Diff_n = 1:size(FT_IT1,8)
+                    for Noise_n = 1:size(FT_IT1,9)
+                        for Repeat_n = 1:size(FT_IT1,10)
+                            FWHM(1,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n) = findFWHM(FT_IT1(:,:,:,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n));
+                            FWHM(2,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n) = findFWHM(FT_IT2(:,:,:,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n));
+                        end
+                    end
                 end
             end
-                    end
-                            end
         end
     end
 end
 
 if settings.UseSyntheticData == 0
     % Plot FWHM
-%     figure('Name',['FFT of IT for ',settings.Scheme,' sequence'],'color','w')
-%     tiles = tiledlayout(1,2);
-%     title(tiles,settings.title_string)
-%     nexttile; plot(squeeze(mean(abs(FWHM(1,:,1,1,1,:)),6)),'x') % try mesh or imagesc
-%     caxis([0 7])
-%     title('Image Train 1')
-%     ylabel('Pre-pulse FA');
-%     xlabel('Index');
-%     nexttile; plot(squeeze(mean(abs(FWHM(2,:,1,1,1,:)),6)),'x')
-%     caxis([0 7])
-%     title('Image Train 2')
-%     ylabel('Pre-pulse FA');
-%     xlabel('Index');
+    %     figure('Name',['FFT of IT for ',settings.Scheme,' sequence'],'color','w')
+    %     tiles = tiledlayout(1,2);
+    %     title(tiles,settings.title_string)
+    %     nexttile; plot(squeeze(mean(abs(FWHM(1,:,1,1,1,:)),6)),'x') % try mesh or imagesc
+    %     caxis([0 7])
+    %     title('Image Train 1')
+    %     ylabel('Pre-pulse FA');
+    %     xlabel('Index');
+    %     nexttile; plot(squeeze(mean(abs(FWHM(2,:,1,1,1,:)),6)),'x')
+    %     caxis([0 7])
+    %     title('Image Train 2')
+    %     ylabel('Pre-pulse FA');
+    %     xlabel('Index');
 end
 
 if settings.Sum_PSF == 0 % Take centre of PSF
@@ -175,7 +175,7 @@ elseif strcmpi(settings.Scheme,'SatTFL')
     Measured_FA = acos(Max_Val_IT2./Max_Val_IT1); % Eq. 2 from Chung, S. et al. MRM. 2010. 64(2):439-446.
     
 elseif  strcmpi(settings.Scheme,'Sandwich')
-    if settings.Lookup_T1 ~= 0 
+    if settings.Lookup_T1 ~= 0
         Measured_FA = Lookup_Table(Max_Val_IT2./Max_Val_IT1,settings);
     else
         disp('Calculating flip angle using arcosine instead of lookup table.')
@@ -194,16 +194,16 @@ results.Average_10s_Power = simulation_results.Average_10s_Power;
 results.Mag_Track = simulation_results.Mag_Track;
 results.Cumulative_Time = simulation_results.Cumulative_Time;
 if isfield(simulation_results,'N_imaging_RF')
-results.N_imaging_RF = simulation_results.N_imaging_RF;
+    results.N_imaging_RF = simulation_results.N_imaging_RF;
 end
 if isfield(simulation_results,'N_prep_RF')
-results.N_prep_RF = simulation_results.N_prep_RF;
+    results.N_prep_RF = simulation_results.N_prep_RF;
 end
 if isfield(simulation_results,'N_imaging_RF1')
-results.N_imaging_RF1 = simulation_results.N_imaging_RF1;
+    results.N_imaging_RF1 = simulation_results.N_imaging_RF1;
 end
 if isfield(simulation_results,'N_imaging_RF2')
-results.N_imaging_RF2 = simulation_results.N_imaging_RF2;
+    results.N_imaging_RF2 = simulation_results.N_imaging_RF2;
 end
 end
 

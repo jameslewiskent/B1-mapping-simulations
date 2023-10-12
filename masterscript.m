@@ -20,8 +20,8 @@ settings.Repeats = 1000; % Number of noise repeats to average
 settings.Noise = 60; % Simulated Noise Levels (peak SNR in Decibels)
 settings.Scheme = 'all'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
 settings.MSor3D = '3D'; % 2D or 3D
-settings.Velocities = [0,0.1]; % Velocity of coherent flow (m/s)
-settings.Angles = [0,0]; % Angle of coherent flow (rad)
+settings.Velocities = [0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
+settings.Angles = [0,0,0,0]; % Angle of coherent flow (rad)
 settings.Diff_coeffs = [0,3e-9]; % Diffusion co-efficient (m^2/s) (isotropic)
 
 settings.PE1_Resolution = 1; % 4/8, 5/8, 6/8, 7/8 or 1
@@ -54,7 +54,7 @@ settings.EPG_trim_threshold = 0.01; % Threshold for trimming EPG states
 settings.Sum_PSF = 0; % Sum PSF if = 1 or if = 0 take only centre of PSF (Recommended leave set to 0)
 settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
 
-settings.Format = {'PE1','PE2','Tx','DR','B0','T1','Flow','Diff'};
+settings.Format = {'PE1','PE2','Tx','DR','B0','T1','Flow','Diff','Noise','Repeats'};
 
 % Plotting settings
 plot_settings.Dyn_Range_pc = 0.1; % DR defined as linear range where the difference in the mean flip angle and standard deviation is less than settings.Dyn_Range_pc (e.g. 7%) of the nominal value

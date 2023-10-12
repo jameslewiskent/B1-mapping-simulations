@@ -1,17 +1,18 @@
 function plot_T1_fig(results,settings,plot_settings)
 % T1 plot
 
-if strcmp(settings.Scheme,'AFI')
+if strcmpi(settings.Scheme,'AFI')
     Nominal_FA = settings.Dynamic_Range.*settings.nomFA*(180/pi);
 else
     Nominal_FA = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
 end
 
+[Dynamic_Range,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
 if plot_settings.Dynamic_Range_Axis == 1
-    [~,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
+    Dynamic_Range_Value = Dynamic_Range_Values(1);
     Axis_Values = Nominal_FA./Dynamic_Range_Values(1); % Rescale axis based on dynamic range
 else
-    Dynamic_Range_Values = 1;
+    Dynamic_Range_Value = 1;
     Axis_Values = Nominal_FA;
 end
 
@@ -32,13 +33,14 @@ end
 Styles = {'-','--','-.',':'};
 Noise_n = 1;
 B0_n = 1;
-
+Flow_n = 1;
+Diff_n = 1;
 for T1_n = 1:size(settings.T1s,2)
     for Repeat_n = 1:size(settings.Repeats,2)
-        plot(Axis_Values,squeeze(results.Measured_FA(1,1,1,:,B0_n,T1_n,Noise_n,Repeat_n))/Dynamic_Range_Values(1) - Subtract_Linear','color',cmap(T1_n,:),'LineStyle','none','marker','.','markersize',3,'handlevisibility','off')
+        plot(Axis_Values,squeeze(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n))/Dynamic_Range_Value - Subtract_Linear','color',cmap(T1_n,:),'LineStyle','none','marker','.','markersize',3,'handlevisibility','off')
         hold on
     end
-    h = plot(Axis_Values,squeeze(mean(results.Measured_FA(1,1,1,:,B0_n,T1_n,Noise_n,:),8))/Dynamic_Range_Values(1) - Subtract_Linear','color',cmap(T1_n,:),'linewidth',1,'LineStyle',Styles{B0_n},'handlevisibility','on');
+    h = plot(Axis_Values,squeeze(mean(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),10))/Dynamic_Range_Value - Subtract_Linear','color',cmap(T1_n,:),'linewidth',1,'LineStyle',Styles{B0_n},'handlevisibility','on');
     if all(T1_n ~= choose_T1n)
         h.HandleVisibility = 'off';
     end

@@ -1,5 +1,4 @@
 function plot_rf_pulses(settings)
-figure('color','w');
 str = {};
 if isfield(settings,'IT_RF_Pulse') && any(settings.IT_RF_Pulse ~= 0)
 RF_Pulse_Size = size(settings.IT_RF_Pulse,2);  

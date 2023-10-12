@@ -8,8 +8,8 @@ settings.Scan_Size(1) = round(settings.PE1_Resolution*settings.PE1_Partial_Fouri
 settings.Scan_Size(2) = round(settings.PE2_Resolution*settings.PE2_Partial_Fourier*settings.Matrix_Size(2));
 settings = Calc_Slice_Shifts(settings); % Calculate Slice Shifts for MS sequences
 settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
+settings.filepath = fullfile('Data',lower(settings.Scheme));
 
-settings.filepath = fullfile('Data',settings.Scheme);
 if ~exist(settings.filepath,'dir')
 mkdir(settings.filepath);
 end

@@ -2,7 +2,7 @@ function plot_SAR_fig(results,settings)
 figure('color','w');
 for Scheme_n = 1:length(settings)
     
-    if strcmp(settings(1,Scheme_n).Scheme,'AFI')
+    if strcmpi(settings(1,Scheme_n).Scheme,'AFI')
         Nominal_FA = settings(1,Scheme_n).Dynamic_Range.*settings(1,Scheme_n).nomFA*(180/pi);
     else
         Nominal_FA = settings(1,Scheme_n).Dynamic_Range.*settings(1,Scheme_n).nomPP_FA*(180/pi);

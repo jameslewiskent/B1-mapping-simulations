@@ -5,8 +5,9 @@ function [results,settings] = run_and_plot(settings,plot_settings,results)
 % ---------------------------------------------------------------------- %
 % ----------- Following code handles simulation and plotting ----------- %
 % ---------------------------------------------------------------------- %
+settings.Scheme = lower(settings.Scheme); % change all scheme names to lowercase to prevent capitalisation from re-running otherwise identical simulations
 if settings.UseSyntheticData == 0
-    Schemes = {'SatTFL','Sandwich','SA2RAGE','AFI','DREAM'};
+    Schemes = {'sattfl','sandwich','sa2rage','afi','dream'};
     if strcmpi(settings.Scheme,'ALL')
         settings = repmat(settings,1,length(Schemes));
         results = repmat(results,1,length(Schemes));
@@ -17,24 +18,44 @@ if settings.UseSyntheticData == 0
         end
         
         places = [1,3,5,14,16];
-        figure('color','w','units','normalized','position',[0.1,0.08,0.58,0.74]); tiledlayout(4,6,'padding','none','tilespacing','compact'); 
+        figure('color','w','units','normalized','position',[0.1,0.08,0.58,0.74],'Name','T1 Plot'); tiledlayout(4,6,'padding','none','tilespacing','compact'); 
         for Scheme_n = 1:length(Schemes)
         nexttile(places(Scheme_n),[2,2]); plot_T1_fig(results(1,Scheme_n),settings(1,Scheme_n),plot_settings); % T1 Plot
         end
         
-        figure('color','w','units','normalized','position',[0.1,0.08,0.58,0.74]); tiledlayout(4,6,'padding','none','tilespacing','compact');
+        figure('color','w','units','normalized','position',[0.1,0.08,0.58,0.74],'Name','B0 Plot'); tiledlayout(4,6,'padding','none','tilespacing','compact');
         for Scheme_n = 1:length(Schemes)
         nexttile(places(Scheme_n),[2,2]); plot_B0_fig(results(1,Scheme_n),settings(1,Scheme_n),plot_settings); % B0 Plot
+        end
+        
+        if size(settings(1,1).Velocities,2) > 1
+        figure('color','w','units','normalized','position',[0.1,0.08,0.58,0.74],'Name','Flow Plot'); tiledlayout(4,6,'padding','none','tilespacing','compact');
+        for Scheme_n = 1:length(Schemes)
+        nexttile(places(Scheme_n),[2,2]); plot_Flow_fig(results(1,Scheme_n),settings(1,Scheme_n),plot_settings); 
+        end
+        end
+        
+        if size(settings(1,1).Diff_coeffs,2) > 1
+        figure('color','w','units','normalized','position',[0.1,0.08,0.58,0.74],'Name','Diff Plot'); tiledlayout(4,6,'padding','none','tilespacing','compact');
+        for Scheme_n = 1:length(Schemes)
+        nexttile(places(Scheme_n),[2,2]); plot_Diff_fig(results(1,Scheme_n),settings(1,Scheme_n),plot_settings); 
+        end
         end
         
         plot_SAR_fig(results,settings); % SAR Plot
         plot_FWHM(results,settings,plot_settings); 
     else
     [results,settings] = run_sequence_simulations(settings,results); % Simulate and process data
-    figure('color','w'); plot_T1_fig(results,settings,plot_settings); % T1 Plot
-    figure('color','w'); plot_B0_fig(results,settings,plot_settings); % B0 Plot
-    figure('color','w'); plot_mz(results,settings); % magnetisation plot
-    figure('color','w'); plot_rf_pulses(settings) 
+    figure('color','w','Name','T1 Plot'); plot_T1_fig(results,settings,plot_settings); % T1 Plot
+    figure('color','w','Name','B0 Plot'); plot_B0_fig(results,settings,plot_settings); % B0 Plot
+    if size(settings.Velocities,2) > 1
+    figure('color','w','Name','Flow Plot'); plot_Flow_fig(results,settings,plot_settings); % Flow Plot
+    end
+    if size(settings.Diff_coeffs,2) > 1
+    figure('color','w','Name','Diff Plot'); plot_Diff_fig(results,settings,plot_settings); % Flow Plot
+    end
+    figure('color','w','Name','Magnetisation Plot'); plot_mz(results,settings); % magnetisation plot
+    figure('color','w','Name','RF Pulse Plot'); plot_rf_pulses(settings) 
     end 
 else 
     % ---------------------------------------------------------------------- %
