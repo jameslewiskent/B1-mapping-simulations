@@ -86,6 +86,38 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
         N_imaging_RF2 = 0;
         
         %%% START OF SEQUENCE %%%
+        
+        % Relative mapping
+        if settings.perform_relative_mapping == 1
+        for PE2_n = 1:settings.Scan_Size(2)
+            Slice_n = settings.Slice_Order(PE2_n);
+            for Segment_n = 1:size(settings.Segment_Sizes,2)
+                for IT_n = sum(settings.Segment_Sizes(1:Segment_n - 1))+1 : sum(settings.Segment_Sizes(1:Segment_n))
+                    for Mode_n = 1:size(settings.Tx_FA_map,3) % repeat for different modes of mTx array
+                    N_imaging_RF1 = N_imaging_RF1 +1;
+                    [P,~,Mag_Track] = epg_rf(P,IT1_FAs(Slice_n),settings.RF_Phase(Mode_n)+settings.rf_spoiling_phases(N_imaging_RF1+N_imaging_RF2),settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
+                    
+                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
+                    
+                    % We don't currently do anything with these relative data Train1(IT_n,Slice_n,Mode_n) = P(1,1).*exp(-1i*settings.rf_spoiling_phases(N_imaging_RF)); % Store Phase-Demodulated 'signal' F+0
+                    
+                    [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,IT_rTE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
+                    
+                    for i = 1:settings.train_spoils(settings.Segment_Sizes(Segment_n))
+                        P = epg_grad(P); % spoiling
+                    end
+                    
+                    if settings.man_spoil == 1
+                        P = [0 0 P(3,1)]'; % manual spoiling
+                    end
+                    Cumulative_Time = Cumulative_Time + settings.IT_TR;
+                    end
+                end
+            end
+        end
+        end
+        
+        % Absolute mapping begins
         if settings.Dummy_Scans ~= 0
             for Dummy_n = 1:settings.Dummy_Scans
                 
@@ -109,6 +141,11 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                     P = [0 0 P(3,1)]'; % manual spoiling
                 end
                 
+                % Relaxation between dummy trains
+                T_relax = settings.TD1 - settings.PP_RF_Time - 0.5*settings.Segment_Sizes(1).*settings.IT_TR; % Time for Relaxation between two trains(s)
+                [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,Diff_co,1,0,Velocity,Angle,Mag_Track,settings); % relaxation + spoiling
+                Cumulative_Time = Cumulative_Time + T_relax;
+                
                 % Dummy image train 1
                 for IT_n = 1:settings.Segment_Sizes(1)
                     N_imaging_RF1 = N_imaging_RF1 +1; % increment rf counter
@@ -127,7 +164,7 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 end
                 
                 % Relaxation between dummy trains
-                T_relax = settings.TD2 - settings.PP_RF_Time - 1.5*settings.Segment_Sizes(1).*settings.IT_TR; % Time for Relaxation between two trains(s)
+                T_relax = settings.TD2 - settings.TD1 - settings.Segment_Sizes(1).*settings.IT_TR; % Time for Relaxation between two trains(s)
                 [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,Diff_co,1,0,Velocity,Angle,Mag_Track,settings); % relaxation + spoiling
                 Cumulative_Time = Cumulative_Time + T_relax;
                 
@@ -174,7 +211,10 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                         P = [0 0 P(3,1)]'; % manual spoiling
                     end
                     
-                    
+                % Relaxation
+                T_relax = settings.TD1 - settings.PP_RF_Time - 0.5*settings.Segment_Sizes(Segment_n).*settings.IT_TR; % Time for Relaxation between two trains(s)
+                [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,Diff_co,1,0,Velocity,Angle,Mag_Track,settings); % relaxation + spoiling
+                Cumulative_Time = Cumulative_Time + T_relax;
                     
                     % Image train 1
                     for IT_n = sum(settings.Segment_Sizes(1:Segment_n - 1))+1 : sum(settings.Segment_Sizes(1:Segment_n))
@@ -195,8 +235,8 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                         Cumulative_Time = Cumulative_Time + settings.IT_TR;
                     end
                     
-                    % Relaxation between dummy trains
-                    T_relax = settings.TD2 - settings.PP_RF_Time - 1.5*settings.Segment_Sizes(1).*settings.IT_TR; % Time for Relaxation between two trains(s)
+                    % Relaxation
+                    T_relax = settings.TD2 - settings.TD1 - settings.Segment_Sizes(Segment_n).*settings.IT_TR; % Time for Relaxation between two trains(s)
                     [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,Diff_co,1,0,Velocity,Angle,Mag_Track,settings); % relaxation + spoiling
                     Cumulative_Time = Cumulative_Time + T_relax;
                     
@@ -210,7 +250,7 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                         
                         [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,IT_rTE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                         
-                        % Dummy Scans not stored
+                        %
                         for i = 1:settings.train_spoils(IT_n)
                             P = epg_grad(P); % spoiling
                         end
@@ -221,7 +261,7 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                     end
                     
                     % Relaxation between last dummy train and next TR
-                    T_relax = settings.TR - settings.TD2 - 0.5*settings.Segment_Sizes(1).*settings.IT_TR; % Time for Relaxation between two trains(s)
+                    T_relax = settings.TR - settings.TD2 - 0.5*settings.Segment_Sizes(Segment_n).*settings.IT_TR; % Time for Relaxation between two trains(s)
                     [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,T_relax,settings.kg,Diff_co,1,0,Velocity,Angle,Mag_Track,settings); % relaxation + spoiling
                     Cumulative_Time = Cumulative_Time + T_relax;
                 end

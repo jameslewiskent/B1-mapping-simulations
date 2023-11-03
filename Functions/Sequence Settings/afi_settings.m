@@ -31,6 +31,7 @@ settings.PE2_Reordering = 'LinearUp'; % Reordering of phase encodes, 'CentricOut
 settings.num_spoils = 1; % Number of unit gradient spoils after each TR period
 settings.man_spoil = 0; % Sets transverse magnetisation to 0 (if =1) assumes 'perfect' spoiling - useful for debugging
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
+settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
 
 settings.Segment_Sizes = settings.Scan_Size(1); % No segmentation for AFI
 

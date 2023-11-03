@@ -2,14 +2,28 @@ function Measured_FA = Lookup_Table(Image_Train_Ratio,settings)
 
 Image_Train_Ratio = real(Image_Train_Ratio);
 
-% Choose T1, On resonance and average over repeats. Choose no diffusion or flow
-fx = squeeze(mean(Image_Train_Ratio(:,:,:,:,settings.B0_Range_Hz == 0,settings.T1s == settings.Lookup_T1,settings.Velocities == 0,settings.Diff_co == 0,1,:),10));
-
-[~,minind] = min(fx); fx(minind:end) = fx(minind); % Ensure monotonic
-
-% Interpolate function
-x_query = linspace(settings.Dynamic_Range(1),settings.Dynamic_Range(end),1e3);
-fx_interp = interp1(settings.Dynamic_Range, real(fx), x_query, 'spline');
+% if isfile([settings.filepath,filesep,settings.lookup_filename])
+%     load([settings.filepath,filesep,settings.lookup_filename],'x_query','fx_interp');
+% end
+% if isfile([settings.filepath,filesep,settings.lookup_filename]) && size(x_query,2) == settings.Lookup_Size && 
+%     % If lookup table exists and the size requested is what is expected,
+%     % then we can use the existing table
+%     disp('Using a previously saved lookup table.')
+% else
+%     disp('No lookup table was found. Generating new lookup table.')
+    disp('Generating lookup table.')
+    
+    % Choose T1, On resonance and average over repeats. Choose no diffusion or flow
+    fx = squeeze(mean(Image_Train_Ratio(:,:,:,:,settings.B0_Range_Hz == 0,settings.T1s == settings.Lookup_T1,settings.Velocities == 0,settings.Diff_co == 0,1,:),10));
+    
+    [~,minind] = min(fx); fx(minind:end) = fx(minind); % Ensure monotonic
+    
+    % Interpolate function
+    x_query = linspace(settings.Dynamic_Range(1),settings.Dynamic_Range(end),settings.Lookup_Size);
+    fx_interp = interp1(settings.Dynamic_Range, real(fx), x_query, 'spline');
+    
+    save([settings.filepath,filesep,settings.lookup_filename],'x_query','fx_interp');
+%end
 
 Measured_FA = zeros(size(Image_Train_Ratio));
 for Mode_n = 1:size(settings.Tx_FA_map,3)

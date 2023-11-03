@@ -23,7 +23,8 @@ settings.PP_RF_Time = 0.5e-3; % Time for Preparation RF pulse
 settings.PP_RF_TBP = 'NA'; % Time bandwidth product
 settings.PP_RF_Pulse = Get_RF_Pulse(settings.nomPP_FA,settings.PP_RF_Type,settings.PP_RF_Time,settings.PP_RF_TBP,settings.Ref_Voltage);
 
-settings.TD2 = 1800e-3; % Time delay 2 (s) (TD1 is unused as block immediantly follows saturation)
+settings.TD1 = 53e-3; % Time delay 1 (s)
+settings.TD2 = 1800e-3; % Time delay 2 (s) 
 settings.IT_TE = 1.13e-3; % Image Train Echo Time (s)
 settings.IT_TR = 2.8e-3; % Image Train Repitition Time (s)
 settings.TR = 2.4; % Long TR time (s)
@@ -36,11 +37,13 @@ settings.rf_spoiling_phases = settings.rf_spoiling_phases(settings.RF_Spoiling_I
 settings.PE1_Reordering = 'CentricOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 settings.PE2_Reordering = 'CentricOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 
+settings.perform_relative_mapping = 0; % Simulate relative mapping prior to absolute maps
 settings.prep_spoils = 1.* ones(1,settings.Dummy_Scans+settings.Segment_Factor*size(settings.Tx_FA_map,3)*settings.Scan_Size(2)+1); %2.^(0:(Dummy_Scans+Segment_Factor*size(Tx_FA_map,3))); % Number of unit gradients to move through after pre-pulse (spoiling- need enough for optional dummy scans too)
 settings.train_spoils = 1.* ones(1,ceil(settings.Scan_Size(1)/settings.Segment_Factor));
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
 settings.man_spoil = 0; % Sets transverse magnetisation to 0 (if =1) assumes 'perfect' spoiling - useful for debugging
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
+settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
 
 % Calculate number of phase encodes in each segment and check
 Train_Size_Tot = settings.Scan_Size(1);
@@ -68,5 +71,11 @@ end
 if settings.MTx == 1
     disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.Tx_FA_map,3)),' Transmit Mode Configuration.s']);
 end
+
+if settings.TD1 < settings.PP_RF_Time + 0.5*settings.Segment_Sizes(1)*settings.IT_TR
+    settings.TD1 = settings.PP_RF_Time + 0.5*settings.Segment_Sizes(1)*settings.IT_TR;
+    warning(['TD1 too low. Changing to minimum delay time = ',num2str(settings.TD1),' s.'])
+end
+
 end
 

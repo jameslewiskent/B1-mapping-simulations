@@ -9,6 +9,7 @@ settings.Scan_Size(2) = round(settings.PE2_Resolution*settings.PE2_Partial_Fouri
 settings = Calc_Slice_Shifts(settings); % Calculate Slice Shifts for MS sequences
 settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 settings.filepath = fullfile('Data',lower(settings.Scheme));
+settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
 
 if ~exist(settings.filepath,'dir')
 mkdir(settings.filepath);

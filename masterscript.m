@@ -1,6 +1,5 @@
 % Script to handle simulation and plotting of B1 mapping sequences.
 % Choose a sequence to simulate and simulation parameters.
-%
 % James Kent. 2023. Using Hargreaves Bloch and EPG Functions.
 clc
 close all
@@ -18,11 +17,11 @@ settings.T1s = [0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
 settings.T2 = 25e-3; % T2 (s)
 settings.Repeats = 1000; % Number of noise repeats to average
 settings.Noise = 60; % Simulated Noise Levels (peak SNR in Decibels)
-settings.Scheme = 'all'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
+settings.Scheme = 'sattfl'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
 settings.MSor3D = '3D'; % 2D or 3D
-settings.Velocities = [0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
-settings.Angles = [0,0,0,0]; % Angle of coherent flow (rad)
-settings.Diff_coeffs = [0,3e-9]; % Diffusion co-efficient (m^2/s) (isotropic)
+settings.Velocities = 0;%[0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
+settings.Angles = 0;%[0,0,0,0]; % Angle of coherent flow (rad)
+settings.Diff_coeffs = 0;%[0,3e-9]; % Diffusion co-efficient (m^2/s) (isotropic)
 
 settings.PE1_Resolution = 1; % 4/8, 5/8, 6/8, 7/8 or 1
 settings.PE1_Partial_Fourier = 1; % 4/8, 5/8, 6/8, 7/8 or 1
@@ -52,7 +51,7 @@ settings.Mag_Track_dt = 1e-3; % Max temporal resolution of magnetisation plot
 settings.EPG_trim_threshold = 0.01; % Threshold for trimming EPG states
 
 settings.Sum_PSF = 0; % Sum PSF if = 1 or if = 0 take only centre of PSF (Recommended leave set to 0)
-settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
+settings.Lookup_Size = 1e4; % Size of lookup table
 
 settings.Format = {'PE1','PE2','Tx','DR','B0','T1','Flow','Diff','Noise','Repeats'};
 

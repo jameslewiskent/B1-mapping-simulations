@@ -172,8 +172,12 @@ elseif strcmpi(settings.Scheme,'SA2RAGE')
     Measured_FA = Lookup_Table(Max_Val_IT1./Max_Val_IT2,settings);
     
 elseif strcmpi(settings.Scheme,'SatTFL')
-    Measured_FA = acos(Max_Val_IT2./Max_Val_IT1); % Eq. 2 from Chung, S. et al. MRM. 2010. 64(2):439-446.
-    
+    if settings.Lookup_T1 ~= 0
+        Measured_FA = Lookup_Table(Max_Val_IT2./Max_Val_IT1,settings);
+    else
+        disp('Calculating flip angle using arcosine instead of lookup table.')
+        Measured_FA = acos(Max_Val_IT2./Max_Val_IT1); % Eq. 2 from Chung, S. et al. MRM. 2010. 64(2):439-446.
+    end    
 elseif  strcmpi(settings.Scheme,'Sandwich')
     if settings.Lookup_T1 ~= 0
         Measured_FA = Lookup_Table(Max_Val_IT2./Max_Val_IT1,settings);

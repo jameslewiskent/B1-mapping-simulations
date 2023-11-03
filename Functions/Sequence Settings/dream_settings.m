@@ -61,7 +61,7 @@ settings.prep_spoils = 10; % Number of unit gradients to move through after STEA
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
 settings.rf_spoiling_phases = cumsum((0:settings.Scan_Size(1)*settings.Scan_Size(2))*50*(pi./180)); % Imaging RF phases (rad) (for RF spoiling)
-
+settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
 
 settings.Segment_Sizes = settings.Scan_Size(1); % No segmentation for DREAM
 

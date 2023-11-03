@@ -19,7 +19,7 @@ end
 indices = find(abs(mz) <= 0.01); % Finds list of indices which are close to zero
 
 if isempty(indices) % Check an index has been found
-    warning('Unable to scale RF pulse. Please check you are requesting an achievable pulse. Retrying covering a larger B1 range.')
+    warning('Unable to scale RF pulse. Retrying covering a larger B1 range.')
     B1_Range_Hz = 0:1:50000;
     mz = zeros(length(B1_Range_Hz),1);
     for B1_n = 1:length(B1_Range_Hz)

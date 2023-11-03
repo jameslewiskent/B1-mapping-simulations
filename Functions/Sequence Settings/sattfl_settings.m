@@ -52,11 +52,12 @@ settings.IT_TR = 3.9e-3; % Image Train Repitition Time (s)
 settings.Segment_Factor = 1; % Segment sequence?
 settings.RF_Spoiling = 1; % RF_Spoiling on (1) or off (0)
 settings.RF_Spoiling_Increment_Checks = 20;
-settings.rf_spoiling_phases = cumsum((0:(2*size(settings.Tx_FA_map,3)*settings.Scan_Size(1)*settings.Scan_Size(2) + 2*settings.Dummy_ITRF*settings.Segment_Factor*size(settings.Tx_FA_map,3) + settings.RF_Spoiling_Increment_Checks))*50).*(pi./180); % Imaging phases (rad) (for RF spoiling- need enough for optional dummy scans too)
+settings.rf_spoiling_phases = cumsum((0:(4*size(settings.Tx_FA_map,3)*settings.Scan_Size(1)*settings.Scan_Size(2) + 2*settings.Dummy_ITRF*settings.Segment_Factor*size(settings.Tx_FA_map,3) + settings.RF_Spoiling_Increment_Checks))*50).*(pi./180); % Imaging phases (rad) (for RF spoiling- need enough for optional dummy scans too)
 settings.rf_spoiling_phases = settings.rf_spoiling_phases(settings.RF_Spoiling_Increment_Checks:end); % Accounts for checks run on scanner which increment RF spoiling increment
 settings.PE1_Reordering = 'CentricOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 settings.PE2_Reordering = 'LinearUp'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 
+settings.perform_relative_mapping = 0; % Simulate relative mapping prior to absolute maps
 settings.prep_spoils = 1.* ones(1,settings.Segment_Factor*size(settings.Tx_FA_map,3)+1); % Number of unit gradients to move through after pre-pulse (spoiling- need enough for optional dummy scans too)
 settings.train_spoils = 1.* ones(1,ceil(settings.Scan_Size(1)/settings.Segment_Factor));
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
@@ -65,6 +66,7 @@ settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/fl
 settings.SR_Module = 0; % Additional 'PERFECT' Saturation recovery module, destroys all longitudinal magnetisation prior to
 settings.TD_SR = 950e-3; % Saturation recovery time delay (s)
 settings.magtrack_flag = 1; % Set to 1 to prevent magnetisation tracking in sequence
+settings.Lookup_T1 = 0; % T1 chosen for lookup table (s)
 
 % Calculate number of phase encodes in each segment and check
 Train_Size_Tot = settings.Scan_Size(1);
@@ -90,6 +92,10 @@ end
 
 if settings.MTx == 1
     disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.Tx_FA_map,3)),' Transmit Mode Configurations.']);
+end
+
+if settings.Lookup_T1 ~= 0
+warning('Calculating the flip angle map using a lookup table. This is unconventional for satTFL which typically uses the arcosine. You turn this off in the sequence settings by setting Lookup_T1 = 0.')
 end
 
 % Need to calculate scan duration, to ensure a minimum duration between subsequent slices
