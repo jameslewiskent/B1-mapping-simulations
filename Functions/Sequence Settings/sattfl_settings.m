@@ -95,7 +95,7 @@ if settings.MTx == 1
 end
 
 if settings.Lookup_T1 ~= 0
-warning('Calculating the flip angle map using a lookup table. This is unconventional for satTFL which typically uses the arcosine. You turn this off in the sequence settings by setting Lookup_T1 = 0.')
+warning('Calculating the flip angle map using a lookup table. This is unconventional for satTFL which typically uses the arccosine. You turn this off in the sequence settings by setting Lookup_T1 = 0.')
 end
 
 % Need to calculate scan duration, to ensure a minimum duration between subsequent slices

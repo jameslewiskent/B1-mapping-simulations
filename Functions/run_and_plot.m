@@ -12,6 +12,7 @@ if settings.UseSyntheticData == 0
         settings = repmat(settings,1,length(Schemes));
         results = repmat(results,1,length(Schemes));
         for Scheme_n = 1:length(Schemes)
+            disp([upper(Schemes{Scheme_n}),' (',num2str(Scheme_n),'/',num2str(length(Schemes)),')'])
             settings(Scheme_n).Scheme = Schemes{Scheme_n};
             settings(Scheme_n).MSor3D = 'default';
             [results(1,Scheme_n),settings(1,Scheme_n)] = run_sequence_simulations(settings(1,Scheme_n),results(1,Scheme_n)); % Simulate and process data

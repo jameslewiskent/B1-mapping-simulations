@@ -16,13 +16,13 @@ settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
 settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
 settings.Slice_Order_Type = 'Linear';
 
-settings.nomPP_FA = 80*pi/180; % Nominal Pre-pulse Flip Angle in Radians
+settings.nomPP_FA = 90*pi/180; % Nominal Pre-pulse Flip Angle in Radians
 settings.PP_RF_Type = 'HS8'; % Hyperbolic secant 8
 settings.PP_RF_Time = 5120e-6; % Time for Preparation RF pulse (s) (5 ms)
 
-% settings.nomPP_FA = 90*pi/180; % Nominal Pre-pulse Flip Angle in Radians
-% settings.PP_RF_Type = 'Rect'; % Hyperbolic secant 8
-% settings.PP_RF_Time = 500e-6; % Time for Preparation RF pulse (s)
+%settings.nomPP_FA = 90*pi/180; % Nominal Pre-pulse Flip Angle in Radians
+%settings.PP_RF_Type = 'Rect'; % Hyperbolic secant 8
+%settings.PP_RF_Time = 500e-6; % Time for Preparation RF pulse (s)
 
 settings.PP_RF_TBP = 15; % Time bandwidth product
 settings.PP_RF_Pulse = Get_RF_Pulse(settings.nomPP_FA,settings.PP_RF_Type,settings.PP_RF_Time,settings.PP_RF_TBP,settings.Ref_Voltage);

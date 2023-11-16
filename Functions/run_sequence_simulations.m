@@ -11,6 +11,27 @@ settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 settings.filepath = fullfile('Data',lower(settings.Scheme));
 settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
 
+if ~any(settings.B0_Range_Hz == 0)
+    disp('We require to simulate B0 = 0 Hz for lookup table calculation. Adding 0 Hz to B0_Range_Hz array.')
+    settings.B0_Range_Hz = [0,settings.B0_Range_Hz];
+end
+
+if ~any(settings.Velocities == 0)
+    disp('We require to simulate flow velocity  = 0 ms^{-1} for lookup table calculation. Adding 0 ms^{-1} to Velocities array.')
+    settings.Velocities = [0,settings.Velocities];
+    settings.Angles = [0,settings.Angles];
+end
+
+if ~any(settings.Diff_coeffs == 0)
+    disp('We require to simulate diffusion coefficient = 0 m^{2}s^{-1} for lookup table calculation. Adding 0 m^{2}s^{-1} to Diff_coeffs array.')
+    settings.Diff_coeffs = [0,settings.Diff_coeffs];
+end
+
+if ~any(isnan(settings.Noise))
+    disp('We require to simulate zero noise for lookup table calculation. Adding no noise to Noise array.')
+    settings.Noise = [NaN,settings.Noise];
+end
+
 if ~exist(settings.filepath,'dir')
 mkdir(settings.filepath);
 end
@@ -28,7 +49,7 @@ if already_ran % Don't re-simulate if input parameters unchanged
     disp('Input parameters unchanged - results not re-simulated.')
     load(fullfile(settings.filepath,filename),'results','settings')  
 else % Simulate sequence
-    disp('Starting Simulations')
+    disp('Starting simulations.')
     if strcmpi(settings.Scheme,'SatTFL')
         [simulation_results,settings] = epg_sattfl(settings);
     elseif strcmpi(settings.Scheme,'Sandwich')
@@ -42,11 +63,13 @@ else % Simulate sequence
     else
         error('ABORTED: Scheme not recognised, please input either ''SatTFL'', ''Sandwich'', ''DREAM'', ''AFI'', ''SA2RAGE'' OR ''ALL''.')
     end
-    disp('Simulation Successful!')
+    disp('Simulations successful!')
     
     % Process simulation results
     % Call for however modes are required
+    disp('Starting analysis.')
     [results] = analysis_function_core(simulation_results, settings,results);
+    disp('Analysis finished.')
     filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y-HH-mm')),'.mat'];
     save(fullfile(settings.filepath,filename),'results','settings')     
 end
@@ -65,10 +88,10 @@ end
 if isfield(results,'N_prep_RF') && results.N_prep_RF ~= 0
 Pulses_string = [Pulses_string,', ',num2str(results.N_prep_RF),' preparation RF pulses'];
 end
-disp([settings.Scheme,' Sequence acquisition time = ',num2str(results.Cumulative_Time),' s. ',Pulses_string,'.'])
+disp([upper(settings.Scheme),' acquisition time = ',num2str(results.Cumulative_Time),' s. ',Pulses_string,'.'])
 if ~isempty(find(settings.Dynamic_Range == 1, 1)) % e.g. nominal flip angle
-    disp([settings.Scheme,' Sequence Total Energy = ',num2str(results.Total_Energy(settings.Dynamic_Range == 1)),' Joules (per channel) at nominal flip angle.'])
-    disp([settings.Scheme,' Sequence Average 10 second Power = ',num2str(results.Average_10s_Power(settings.Dynamic_Range == 1)),' Watts (per channel) at nominal flip angle.'])
+    disp([upper(settings.Scheme),' sequence total energy = ',num2str(results.Total_Energy(settings.Dynamic_Range == 1)),' Joules (per channel) at nominal flip angle.'])
+    disp([upper(settings.Scheme),' sequence average 10 second power = ',num2str(results.Average_10s_Power(settings.Dynamic_Range == 1)),' Watts (per channel) at nominal flip angle.'])
 end
 
 end

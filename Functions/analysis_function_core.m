@@ -8,7 +8,6 @@ function [results] = analysis_function_core(simulation_results, settings,results
 IT1 = simulation_results.IT1;
 IT2 = simulation_results.IT2;
 
-
 % Re-order Image Trains
 % Collected chronologically in the image train.
 if strcmpi(settings.Scheme,'DREAM')  % Don't re-order DREAM k-space
@@ -49,6 +48,7 @@ end
 % Add zero-mean complex Gaussian noise independently to each reordered IT
 %Noise_sd = max(abs(Reordered_IT1),[],'all')./db2mag(settings.Noise);
 Noise_sd = 1./db2mag(settings.Noise);
+Noise_sd(isnan(settings.Noise)) = 0; % Set any NaN's to 0, no noise added
 
 IT1_Noisy = Reordered_IT1 + bsxfun(@times,randn([size(Reordered_IT1),size(settings.Noise,2),settings.Repeats]),reshape(Noise_sd,[1 1 1 1 1 1 1 1 size(settings.Noise,2) 1])) + 1i.*bsxfun(@times,randn([size(Reordered_IT1),size(settings.Noise,2),settings.Repeats]),reshape(Noise_sd,[1 1 1 1 1 1 1 1 size(settings.Noise,2) 1]));
 IT2_Noisy = Reordered_IT2 + bsxfun(@times,randn([size(Reordered_IT2),size(settings.Noise,2),settings.Repeats]),reshape(Noise_sd,[1 1 1 1 1 1 1 1 size(settings.Noise,2) 1])) + 1i.*bsxfun(@times,randn([size(Reordered_IT2),size(settings.Noise,2),settings.Repeats]),reshape(Noise_sd,[1 1 1 1 1 1 1 1 size(settings.Noise,2) 1]));

@@ -31,7 +31,8 @@ else
     choose_T1n = round(linspace(1,size(settings.T1s,2),6));% pick 6 T1's to put in legend
 end
 Styles = {'-','--','-.',':'};
-Noise_n = 1;
+Noise_n = find(~isnan(settings.Noise)); % First non-NaN (non-zero noise)
+if isempty(Noise_n); Noise_n = 1; end
 B0_n = 1;
 Flow_n = 1;
 Diff_n = 1;

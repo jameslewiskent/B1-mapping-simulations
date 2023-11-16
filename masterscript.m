@@ -3,7 +3,7 @@
 % James Kent. 2023. Using Hargreaves Bloch and EPG Functions.
 clc
 close all
-clear all
+clearvars
 cd(fileparts(matlab.desktop.editor.getActiveFilename))
 addpath(genpath('Functions')); load('initialise.mat');
 
@@ -16,8 +16,8 @@ settings.B0_Range_Hz = [0,100,500,1000]; % B0 offsets (Hz)
 settings.T1s = [0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
 settings.T2 = 25e-3; % T2 (s)
 settings.Repeats = 1000; % Number of noise repeats to average
-settings.Noise = 60; % Simulated Noise Levels (peak SNR in Decibels)
-settings.Scheme = 'sattfl'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
+settings.Noise = [NaN,60]; % Simulated Noise Levels (peak SNR in Decibels) (NaN is no noise, used for generating lookup table)
+settings.Scheme = 'sandwich'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
 settings.MSor3D = '3D'; % 2D or 3D
 settings.Velocities = 0;%[0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
 settings.Angles = 0;%[0,0,0,0]; % Angle of coherent flow (rad)
@@ -46,7 +46,7 @@ settings.Gamma = 42.57747892e6; % [Hz per T]
 settings.Slice_Shift = 2e3; % Fixed slice shift (set to 0 to not fix) [Hz]
 
 settings.Mag_Track_FAValues = [30,60,90,120,150,180]; % Track magnetisation for specific nominal flip angles
-settings.Mag_Track_T1Values = settings.T1s(3); % T1 of magnetisation vector to track
+settings.Mag_Track_T1Values = 1.5; % T1 of magnetisation vector to track
 settings.Mag_Track_dt = 1e-3; % Max temporal resolution of magnetisation plot
 settings.EPG_trim_threshold = 0.01; % Threshold for trimming EPG states
 

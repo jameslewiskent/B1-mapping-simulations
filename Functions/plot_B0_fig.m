@@ -25,7 +25,8 @@ end
 
 cmap = sixcolourmap;
 Styles = {'-','--','-.',':'};
-Noise_n = 1;
+Noise_n = find(~isnan(settings.Noise)); % First non-NaN (non-zero noise)
+if isempty(Noise_n); Noise_n = 1; end
 T1_n = 3;
 Flow_n = 1;
 Diff_n = 1;
