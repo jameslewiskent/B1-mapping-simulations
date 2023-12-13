@@ -10,13 +10,15 @@ else
 end
 x_axis = permute(x_axis,[4 3 1 2]);
 
+Noise_n = find(~isnan(settings.Noise)); % Don't use NaN noise level
+
 % Mean Range
-Mean_FA = mean(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,find(settings.Velocities == 0),find(settings.Diff_co == 0),:,:),[6,10]); % On resonance, average T1s and repeats
+Mean_FA = mean(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,find(settings.Velocities == 0),find(settings.Diff_co == 0),Noise_n,:),[6,10]); % On resonance, average T1s and repeats
 Mean_full_range = find(abs(Mean_FA - x_axis) < (x_axis*plot_settings.Dyn_Range_pc)); % remove gradient and find values below percent_under
 
 
 % SD Range
-SD_FA = std(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,find(settings.Velocities == 0),find(settings.Diff_co == 0),:,:),[],[6,10]); % On resonance, average T1s and repeats
+SD_FA = std(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,find(settings.Velocities == 0),find(settings.Diff_co == 0),Noise_n,:),[],[6,10]); % On resonance, average T1s and repeats
 SD_full_range = find(abs(SD_FA) < (x_axis*plot_settings.Dyn_Range_pc));
 
 

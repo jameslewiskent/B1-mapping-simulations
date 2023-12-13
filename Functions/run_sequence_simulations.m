@@ -9,7 +9,11 @@ settings.Scan_Size(2) = round(settings.PE2_Resolution*settings.PE2_Partial_Fouri
 settings = Calc_Slice_Shifts(settings); % Calculate Slice Shifts for MS sequences
 settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 settings.filepath = fullfile('Data',lower(settings.Scheme));
-settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
+if isfield(settings,'Additional_Loop_Counter')
+    settings.lookup_filename = [settings.Scheme,'_lookup_table_Loop',num2str(settings.Additional_Loop_Counter),'.mat'];
+else
+    settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
+end
 
 if ~any(settings.B0_Range_Hz == 0)
     disp('We require to simulate B0 = 0 Hz for lookup table calculation. Adding 0 Hz to B0_Range_Hz array.')
@@ -39,11 +43,21 @@ end
 % Load sequence specific settings
 settings = load_sequence_settings(settings);
 
+% Optional - Overwrite sequence specific settings for additional looping of parameters 
+% e.g. useful for testing different sequence TRs etc.
+if isfield(settings,'LoopValues') && isfield(settings,'Additional_Loop_Counter')
+    settings.(settings.LoopFieldName) = settings.LoopValues(settings.Additional_Loop_Counter,:);
+end
+
 % Calculate slice ordering
 settings = Calc_Slice_Order(settings);
 
-% Check if simulations already ran
-[already_ran,filename] = check_if_already_ran(settings);
+% Check if simulations already ran (only if not using additional loop)
+if isfield(settings,'LoopValues') && isfield(settings,'Additional_Loop_Counter')
+    already_ran = 0;
+else
+    [already_ran,filename] = check_if_already_ran(settings);
+end
 
 if already_ran % Don't re-simulate if input parameters unchanged
     disp('Input parameters unchanged - results not re-simulated.')
@@ -70,7 +84,11 @@ else % Simulate sequence
     disp('Starting analysis.')
     [results] = analysis_function_core(simulation_results, settings,results);
     disp('Analysis finished.')
+    if isfield(settings,'Additional_Loop_Counter')
+    filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y')),'_Loop',num2str(settings.Additional_Loop_Counter),'.mat'];
+    else
     filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y-HH-mm')),'.mat'];
+    end
     save(fullfile(settings.filepath,filename),'results','settings')     
 end
 

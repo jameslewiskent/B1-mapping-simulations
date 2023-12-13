@@ -7,8 +7,8 @@ else
     Nominal_FA = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
 end
 
-[~,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
 if plot_settings.Dynamic_Range_Axis == 1
+    [~,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
     Dynamic_Range_Value = Dynamic_Range_Values(1);
     Axis_Values = Nominal_FA./Dynamic_Range_Values(1); % Rescale axis based on dynamic range
 else
@@ -26,7 +26,11 @@ end
 cmap = sixcolourmap;
 Styles = {'-','--','-.',':'};
 Noise_n = find(~isnan(settings.Noise)); % First non-NaN (non-zero noise)
-if isempty(Noise_n); Noise_n = 1; end
+if isempty(Noise_n)
+    Noise_n = 1;
+else
+    Noise_n = Noise_n(1);
+end
 B0_n = 1;
 T1_n = 3;
 Flow_n = 1;

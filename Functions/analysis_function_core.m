@@ -165,8 +165,8 @@ if strcmpi(settings.Scheme,'DREAM')
     
 elseif strcmpi(settings.Scheme,'AFI')
     n = settings.TR2/settings.TR1; % TR2/TR1 for AFI Scheme (E.g. n = 100 ms / 20 ms = 5)
-    r = Max_Val_IT2./Max_Val_IT1;
-    Measured_FA = acos( (r.*n - 1) ./ (n - r) ); % Eq. [6] Yarnykh VL. AFI. Magn Reson Med 2007;57:192?200. https://doi.org/10.1002/mrm.21120.
+    r = (Max_Val_IT2./Max_Val_IT1);
+    Measured_FA = acos( ((r.*n) - 1) ./ (n - r) ); % Eq. [6] Yarnykh VL. AFI. Magn Reson Med 2007;57:192?200. https://doi.org/10.1002/mrm.21120.
     
 elseif strcmpi(settings.Scheme,'SA2RAGE')
     Measured_FA = Lookup_Table(Max_Val_IT1./Max_Val_IT2,settings);

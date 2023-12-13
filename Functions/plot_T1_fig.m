@@ -7,11 +7,12 @@ else
     Nominal_FA = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
 end
 
-[Dynamic_Range,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
 if plot_settings.Dynamic_Range_Axis == 1
+    [Dynamic_Range,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
     Dynamic_Range_Value = Dynamic_Range_Values(1);
     Axis_Values = Nominal_FA./Dynamic_Range_Values(1); % Rescale axis based on dynamic range
 else
+    Dynamic_Range = NaN;
     Dynamic_Range_Value = 1;
     Axis_Values = Nominal_FA;
 end
@@ -32,7 +33,11 @@ else
 end
 Styles = {'-','--','-.',':'};
 Noise_n = find(~isnan(settings.Noise)); % First non-NaN (non-zero noise)
-if isempty(Noise_n); Noise_n = 1; end
+if isempty(Noise_n)
+    Noise_n = 1;
+else
+    Noise_n = Noise_n(1);
+end
 B0_n = 1;
 Flow_n = 1;
 Diff_n = 1;
@@ -67,7 +72,7 @@ elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference ==
     ylabel(['Measured FA, [',char(176),']']);
     xlim([0 200]); ylim([0 200]);
     % Add dynamic range bar if there are sufficient repeats
-    if settings.Repeats >= 20
+    if settings.Repeats >= 20 && ~isnan(Dynamic_Range)
         text((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2,10,['DR: ',num2str(Dynamic_Range,'%.1f')],'horizontalalignment','center','verticalalignment','middle','color','k')
         plot(linspace(Dynamic_Range_Values(1),(Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2 -15,10),10*ones(1,10),'color','k','Linewidth',1,'handlevisibility','off')
         plot(linspace((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2 +15,Dynamic_Range_Values(2),10),10*ones(1,10),'color','k','Linewidth',1,'handlevisibility','off')
@@ -79,7 +84,7 @@ elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference ==
     ylabel(['[Measured - Nominal] FA, [',char(176),']']);
     xlim([0 200]); ylim([-100 100]);
     % Add dynamic range bar if there are sufficient repeats
-    if settings.Repeats >= 20
+    if settings.Repeats >= 20 && ~isnan(Dynamic_Range)
         text((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2,10,['DR: ',num2str(Dynamic_Range,'%.1f')],'horizontalalignment','center','verticalalignment','middle','color','k')
         plot(linspace(Dynamic_Range_Values(1),(Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2 -15,10),10*ones(1,10),'color','k','Linewidth',1,'handlevisibility','off')
         plot(linspace((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2 +15,Dynamic_Range_Values(2),10),10*ones(1,10),'color','k','Linewidth',1,'handlevisibility','off')

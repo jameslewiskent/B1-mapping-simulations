@@ -2,8 +2,8 @@ function [already_ran,filename] = check_if_already_ran(settings)
 % Check if simulations have already been run with the given parameters
 
 list = dir(settings.filepath);
-list = list(~ismember({list.name},{'.','..'}));
-list = list(~ismember({list.name},{settings.lookup_filename})); % Remove any lookup tables from the list
+list = list(~ismember({list.name},{'.','..'})); % Remove dirs
+list = list(contains({list.name},'Results')); % Remove non-Results
 
 already_ran = false;
 filename = 'NA';

@@ -12,12 +12,12 @@ addpath(genpath('Functions')); load('initialise.mat');
 % ---------------------------------------------------------------------- %
 % Sequence specific settings can be found in 'Functions/Sequence Settings'
 settings.Dynamic_Range = 0.05:0.05:3; % Simulate a large dynamic range of B1
-settings.B0_Range_Hz = [0,100,500,1000]; % B0 offsets (Hz)
+settings.B0_Range_Hz = 0;%[0,100,500,1000]; % B0 offsets (Hz)
 settings.T1s = [0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
 settings.T2 = 25e-3; % T2 (s)
-settings.Repeats = 1000; % Number of noise repeats to average
+settings.Repeats = 1001; % Number of noise repeats to average
 settings.Noise = [NaN,60]; % Simulated Noise Levels (peak SNR in Decibels) (NaN is no noise, used for generating lookup table)
-settings.Scheme = 'sandwich'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
+settings.Scheme = 'Sandwich'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
 settings.MSor3D = '3D'; % 2D or 3D
 settings.Velocities = 0;%[0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
 settings.Angles = 0;%[0,0,0,0]; % Angle of coherent flow (rad)
@@ -52,6 +52,11 @@ settings.EPG_trim_threshold = 0.01; % Threshold for trimming EPG states
 
 settings.Sum_PSF = 0; % Sum PSF if = 1 or if = 0 take only centre of PSF (Recommended leave set to 0)
 settings.Lookup_Size = 1e4; % Size of lookup table
+
+%settings.LoopValues = 0.5:0.1:2; % Additional loop which can be hijacked for various purposes e.g. TR. Saves each loop in seperate .mat file.
+%settings.LoopFieldName = 'TR'; % Additional loop which can be hijacked for various purposes e.g. TR. Saves each loop in seperate .mat file.
+%settings.LoopValues = [32:4:64;32:4:64]'; % Additional loop which can be hijacked for various purposes e.g. TR. Saves each loop in seperate .mat file.
+%settings.LoopFieldName = 'Matrix_Size'; % Additional loop which can be hijacked for various purposes e.g. TR. Saves each loop in seperate .mat file.
 
 settings.Format = {'PE1','PE2','Tx','DR','B0','T1','Flow','Diff','Noise','Repeats'};
 
