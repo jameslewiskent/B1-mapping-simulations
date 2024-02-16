@@ -13,9 +13,9 @@ addpath(genpath('Functions')); load('initialise.mat');
 % Sequence specific settings can be found in 'Functions/Sequence Settings'
 settings.Dynamic_Range = 0:0.01:3; % Simulate a large dynamic range of B1
 settings.B0_Range_Hz = 0;%[0,100,500,1000]; % B0 offsets (Hz)
-settings.T1s = [0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
+settings.T1s = 1.5;%[0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
 settings.T2 = 25e-3; % T2 (s)
-settings.Repeats = 1001; % Number of noise repeats to average
+settings.Repeats = 1; % Number of noise repeats to average
 settings.Noise = [NaN,60]; % Simulated Noise Levels (peak SNR in Decibels) (NaN is no noise, used for generating lookup table)
 settings.Scheme = 'Sandwich'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
 settings.MSor3D = '3D'; % 2D or 3D

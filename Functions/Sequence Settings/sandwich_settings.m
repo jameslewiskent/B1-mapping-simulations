@@ -87,7 +87,7 @@ elseif settings.Segment_Factor ~= 1
     disp(['Number of phase encodes in image train: ',num2str(settings.Scan_Size(1)),', per segment: ',num2str(settings.Segment_Sizes)]);
 end
 
-% Notificaitons to user
+% Notifications to user
 if settings.UseSyntheticData == 0
     settings.RF_Phase = zeros(1,size(settings.Tx_FA_map,3)); % Otherwise it is set in the synethic data loop
 end

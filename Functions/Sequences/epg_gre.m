@@ -2,10 +2,6 @@ function [simulation_results,settings] = epg_gre(settings)
 % Function to simulate image trains for relative GRE mapping scheme
 % Controls looping structure over different flip angles, T1s etc.
 %
-%   INFO:
-%       Adapation to Chung et al.'s B1 mapping method. Proton density image 'sandwiched' to
-%       before the pre-pulse.
-%
 % J. Kent. 2023. Using B.Hargreaves EPG and Bloch Functions.
 
 % End of checks and command output, following is control of loops through T1/TR/Ratio values etc.

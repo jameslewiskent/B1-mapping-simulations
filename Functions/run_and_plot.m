@@ -120,7 +120,7 @@ else
     
     mask = zeros(size(slice));
     % Define mask regions
-    if settings.whole_body_mask == 0
+    if settings.Whole_body_mask == 0
         mask_heart = zeros(size(slice)); % pre-allocate heart mask
         mask_blood = zeros(size(slice)); % pre-allocate T2 value array
         for indi = 1:size(slice,1)
@@ -145,14 +145,12 @@ else
         mask(slice_T1 ~= 0) = 1;
     end
 
-    
-    
-    B1Rx = squeeze(SyntheticDuke.B1Rx(:,:,Syn_Slice,:)); % Receive field 139 x 178 x 124 slices x 8 channels
+    B1Rx = squeeze(SyntheticDuke.B1Rx(:,:,settings.Syn_Slice,:)); % Receive field 139 x 178 x 124 slices x 8 channels
     
     % Don't re-simulate if input parameters unchanged
     %if
     % Function below handles simulating EPG image train and does analysis
-    [results] = run_sequence_simulations(settings);
+    [results] = run_sequence_simulations(settings,results,plot_settings);
     %else
     %    disp('Input parameters unchanged - results not re-simulated.')
     %end
