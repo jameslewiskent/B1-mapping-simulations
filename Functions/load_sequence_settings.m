@@ -14,6 +14,9 @@ elseif strcmpi(settings.Scheme,'AFI')
     
 elseif strcmpi(settings.Scheme,'DREAM')
     [settings] = dream_settings(settings);
+    
+elseif strcmpi(settings.Scheme,'GRE')
+    [settings] = gre_settings(settings);
 else
     error('ABORTED: Scheme not recognised, please input either ''SatTFL'', ''Sandwich'', ''DREAM'', ''AFI'', ''SA2RAGE'' OR ''ALL''.')
 end

@@ -18,7 +18,13 @@ ylabel('Longitudinal Magnetisation, M_z')
 ylim([-1 1]); yticks([-1 -0.5 0 0.5 1])
 xlim([0 results.Mag_Track{n}(2,end)])
 
-lgd = legend(sprintfc('%g', settings.Mag_Track_FAValues),'Location','South','Orientation','vertical','NumColumns',2);
+if length(settings.Mag_Track_FAValues) <= 3
+    nCols = 1;
+else
+    nCols = 2;
+end
+
+lgd = legend(sprintfc('%g', settings.Mag_Track_FAValues),'Location','South','Orientation','vertical','NumColumns',nCols);
 lgd.Title.String = ['Nominal FA, [',char(176),']'];
 end
 

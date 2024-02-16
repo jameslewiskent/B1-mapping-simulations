@@ -32,7 +32,7 @@ else
     Noise_n = Noise_n(1);
 end
 B0_n = 1;
-T1_n = 3;
+T1_n = find(settings.T1s == 1.5);
 Diff_n = 1;
 for Flow_n = 1:size(settings.Velocities,2)
     plot(Axis_Values,squeeze(mean(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),10))/Dynamic_Range_Value - Subtract_Linear','color',cmap(T1_n,:),'linewidth',1.5,'LineStyle',Styles{Flow_n});    hold on

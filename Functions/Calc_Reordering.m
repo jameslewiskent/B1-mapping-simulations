@@ -16,7 +16,7 @@ elseif strcmp(settings.PE1_Reordering,'CentricIn')
     ReorderPE1(1,:) = fliplr([Centre_Line,reshape([B(1:N);A(1:N)],1,[]),A(N+1:end),B(N+1:end)] +1); % Define Re-ordering (+1 accounts for non-zero indexing of Matlab). Since it is centric we have to interleave the reordering
     ReorderPE1(2,:) = ReorderPE1(1,:);
 elseif strcmp(settings.PE1_Reordering,'CentricInOut')
-    ReorderPE1(1,:) = [Centre_Line,reshape([B(1:N);A(1:N)],1,[]),A(N+1:end),B(N+1:end)] +1; % Define Re-ordering (+1 accounts for non-zero indexing of Matlab). Since it is centric we have to interleave the reordering
+    ReorderPE1(1,:) = fliplr([Centre_Line,reshape([B(1:N);A(1:N)],1,[]),A(N+1:end),B(N+1:end)] +1); % Define Re-ordering (+1 accounts for non-zero indexing of Matlab). Since it is centric we have to interleave the reordering
     ReorderPE1(2,:) = fliplr(ReorderPE1(1,:));
 elseif strcmp(settings.PE1_Reordering,'LinearUp')
     ReorderPE1(1,:) = (0:1:round(settings.PE1_Resolution*settings.PE1_Partial_Fourier*settings.Matrix_Size(1))-1) +1; % Define Re-ordering (+1 accounts for non-zero indexing of Matlab)

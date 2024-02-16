@@ -12,7 +12,7 @@ if plot_settings.Dynamic_Range_Axis == 1
     Dynamic_Range_Value = Dynamic_Range_Values(1);
     Axis_Values = Nominal_FA./Dynamic_Range_Values(1); % Rescale axis based on dynamic range
 else
-    Dynamic_Range = NaN;
+    [Dynamic_Range,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
     Dynamic_Range_Value = 1;
     Axis_Values = Nominal_FA;
 end
@@ -42,18 +42,25 @@ B0_n = 1;
 Flow_n = 1;
 Diff_n = 1;
 for T1_n = 1:size(settings.T1s,2)
-    for Repeat_n = 1:size(settings.Repeats,2)
-        plot(Axis_Values,squeeze(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n))/Dynamic_Range_Value - Subtract_Linear','color',cmap(T1_n,:),'LineStyle','none','marker','.','markersize',3,'handlevisibility','off')
-        hold on
-    end
-    h = plot(Axis_Values,squeeze(mean(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),10))/Dynamic_Range_Value - Subtract_Linear','color',cmap(T1_n,:),'linewidth',1,'LineStyle',Styles{B0_n},'handlevisibility','on');
+%     for Repeat_n = 1:settings.Repeats
+%         plot(Axis_Values,squeeze(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n))/Dynamic_Range_Value - Subtract_Linear','color',cmap(T1_n,:),'LineStyle','none','marker','.','markersize',3,'handlevisibility','off')
+%         hold on
+%     end
+    SD_Data_to_plot = squeeze(std(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),[],10));
+    Mean_Data_to_plot = squeeze(mean(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),10))/Dynamic_Range_Value - Subtract_Linear';
+    h = plot(Axis_Values,Mean_Data_to_plot,'color',cmap(T1_n,:),'linewidth',1,'LineStyle',Styles{B0_n},'handlevisibility','on'); hold on
+    x_vector = [Axis_Values,fliplr(Axis_Values)];
+    data_vector = [(Mean_Data_to_plot+SD_Data_to_plot)',flip(Mean_Data_to_plot-SD_Data_to_plot)'];
+    patch = fill(x_vector, data_vector, cmap(T1_n,:),'HandleVisibility','off');
+    set(patch, 'edgecolor', 'none');
+    set(patch, 'FaceAlpha', 0.1);
     if all(T1_n ~= choose_T1n)
         h.HandleVisibility = 'off';
     end
 end
 grid on
 axis square
-lgd = legend(sprintfc('%g', settings.T1s(choose_T1n)),'Location','NorthWest','Orientation','vertical');
+lgd = legend(sprintfc('%g', settings.T1s(choose_T1n)),'Location','NorthEast','Orientation','vertical');
 lgd.Title.String = 'T1 (s)';
 title(settings.title_string,'Fontsize',16)
 
@@ -70,9 +77,9 @@ elseif plot_settings.Dynamic_Range_Axis == 1 && plot_settings.Plot_Difference ==
 elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference == 0
     xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:220)
     ylabel(['Measured FA, [',char(176),']']);
-    xlim([0 200]); ylim([0 200]);
+    xlim([0 180]); ylim([0 180]);
     % Add dynamic range bar if there are sufficient repeats
-    if settings.Repeats >= 20 && ~isnan(Dynamic_Range)
+    if settings.Repeats >= 20 && ~isnan(Dynamic_Range) && plot_settings.Dyn_Range_pc ~= 0
         text((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2,10,['DR: ',num2str(Dynamic_Range,'%.1f')],'horizontalalignment','center','verticalalignment','middle','color','k')
         plot(linspace(Dynamic_Range_Values(1),(Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2 -15,10),10*ones(1,10),'color','k','Linewidth',1,'handlevisibility','off')
         plot(linspace((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2 +15,Dynamic_Range_Values(2),10),10*ones(1,10),'color','k','Linewidth',1,'handlevisibility','off')
@@ -82,9 +89,9 @@ elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference ==
 elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference == 1
     xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:220)
     ylabel(['[Measured - Nominal] FA, [',char(176),']']);
-    xlim([0 200]); ylim([-100 100]);
+    xlim([0 180]); ylim([-90 90]);
     % Add dynamic range bar if there are sufficient repeats
-    if settings.Repeats >= 20 && ~isnan(Dynamic_Range)
+    if settings.Repeats >= 20 && ~isnan(Dynamic_Range) && plot_settings.Dyn_Range_pc ~= 0
         text((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2,10,['DR: ',num2str(Dynamic_Range,'%.1f')],'horizontalalignment','center','verticalalignment','middle','color','k')
         plot(linspace(Dynamic_Range_Values(1),(Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2 -15,10),10*ones(1,10),'color','k','Linewidth',1,'handlevisibility','off')
         plot(linspace((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2 +15,Dynamic_Range_Values(2),10),10*ones(1,10),'color','k','Linewidth',1,'handlevisibility','off')
@@ -92,6 +99,11 @@ elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference ==
         plot(Dynamic_Range_Values(2)*ones(1,10),linspace(8,12,10),'color','k','Linewidth',1,'handlevisibility','off')
     end
 end
+
+
+    %x= std(squeeze(results.Measured_FA(1,1,1,:,B0_n,:,Flow_n,Diff_n,Noise_n,:))/Dynamic_Range_Value - Subtract_Linear',[],3);
+    %mean(x(35:160,:),1)
+
 
 end
 

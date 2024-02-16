@@ -8,25 +8,39 @@ if strcmpi(settings.Scheme,'AFI')
 else
     x_axis = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
 end
-x_axis = permute(x_axis,[4 3 1 2]);
 
 Noise_n = find(~isnan(settings.Noise)); % Don't use NaN noise level
 
 % Mean Range
-Mean_FA = mean(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,find(settings.Velocities == 0),find(settings.Diff_co == 0),Noise_n,:),[6,10]); % On resonance, average T1s and repeats
+Mean_FA = squeeze(mean(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,find(settings.Velocities == 0),find(settings.Diff_co == 0),Noise_n,:),[6,10]))'; % On resonance, average T1s and repeats
 Mean_full_range = find(abs(Mean_FA - x_axis) < (x_axis*plot_settings.Dyn_Range_pc)); % remove gradient and find values below percent_under
 
+% Filter out erronous values (ensure at least 10 consecutive values in a row)
+x = diff(Mean_full_range)==1;
+f = find([false,x]~=[x,false]);
+g = find(f(2:2:end)-f(1:2:end-1)>=10,1,'first');
+Mean_full_range = Mean_full_range(f(2*g-1):f(2*g)); % First t followed by >=N consecutive numbers
 
 % SD Range
-SD_FA = std(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,find(settings.Velocities == 0),find(settings.Diff_co == 0),Noise_n,:),[],[6,10]); % On resonance, average T1s and repeats
+SD_FA = 1.96.*squeeze(std(results.Measured_FA(:,:,:,:,find(settings.B0_Range_Hz == 0),:,find(settings.Velocities == 0),find(settings.Diff_co == 0),Noise_n,:),[],[6,10]))'; % On resonance, average T1s and repeats
 SD_full_range = find(abs(SD_FA) < (x_axis*plot_settings.Dyn_Range_pc));
 
+% Filter out erronous values (ensure at least 10 consecutive values in a row)
+x = diff(SD_full_range)==1;
+f = find([false,x]~=[x,false]);
+g = find(f(2:2:end)-f(1:2:end-1)>=10,1,'first');
+SD_full_range = SD_full_range(f(2*g-1):f(2*g)); % First t followed by >=N consecutive numbers
 
+try
 first_last_range(1) = max([Mean_full_range(1),SD_full_range(1)]); % Take maximum of ranges
-first_last_range(2) = min([Mean_full_range(end),find(diff(SD_full_range) >1,1)]);
+first_last_range(2) = min([Mean_full_range(end),SD_full_range(end)]);
+catch
+    first_last_range(1) = 1;
+    first_last_range(2) = 2;
+end
 
-%figure();plot(abs(Mean_FA - x_axis)); hold on; plot((x_axis*settings.Dyn_Range_pc))
-%figure();plot(abs(SD_FA)); hold on; plot((x_axis*settings.Dyn_Range_pc))
+%figure();plot(abs(Mean_FA - x_axis)); hold on; plot((x_axis*plot_settings.Dyn_Range_pc))
+%figure();plot(squeeze(abs(SD_FA))); hold on; plot(squeeze(x_axis*plot_settings.Dyn_Range_pc))
 % cmap = sixcolourmap;
 % figure('color','w')
 % for T1_n = 1:size(results.Measured_FA,4)

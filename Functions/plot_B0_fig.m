@@ -31,7 +31,7 @@ if isempty(Noise_n)
 else
     Noise_n = Noise_n(1);
 end
-T1_n = 3;
+T1_n = find(settings.T1s == 1.5);
 Flow_n = 1;
 Diff_n = 1;
 for B0_n = 1:size(settings.B0_Range_Hz,2)

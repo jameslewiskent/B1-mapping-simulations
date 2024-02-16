@@ -1,4 +1,4 @@
-function Measured_FA = Lookup_Table(Image_Train_Ratio,settings)
+function Generate_Lookup_Table(Image_Train_Ratio,settings)
 % Generate a lookup table from simulation, then apply that lookup table to
 % the rest of the data
 
@@ -18,6 +18,8 @@ Image_Train_Ratio = real(Image_Train_Ratio);
     % Choosen T1, On resonance, No diffusion, flow or noise and an average over repeats. 
     try
     fx = squeeze(mean(Image_Train_Ratio(:,:,:,:,settings.B0_Range_Hz == 0,settings.T1s == settings.Lookup_T1,settings.Velocities == 0,settings.Diff_co == 0,isnan(settings.Noise),:),10));
+    
+    fx(isnan(fx)) = 1; % Replace nans with 1 (Fixes lookup for FA = 0 divide by 0 values)
     catch
         error('Could not create a lookup table with B0 = 0 Hz, Diff_co = 0, Flow = 0 and Noise = 0. Are we simulating these values?')
     end
@@ -30,27 +32,6 @@ Image_Train_Ratio = real(Image_Train_Ratio);
     %figure(); plot(x_query,fx_interp)
     disp(['Lookup table saved: ',[settings.filepath,filesep,settings.lookup_filename]])
     save([settings.filepath,filesep,settings.lookup_filename],'x_query','fx_interp');
-%end
-
-disp('Applying lookup table.')
-Measured_FA = zeros(size(Image_Train_Ratio));
-for Mode_n = 1:size(settings.Tx_FA_map,3)
-    for Dynamic_Range_n = 1:size(Image_Train_Ratio,4)
-        for B0_n = 1:size(Image_Train_Ratio,5)
-            for T1_n = 1:size(Image_Train_Ratio,6)
-                for Flow_n = 1:size(Image_Train_Ratio,7)
-                    for Diff_n = 1:size(Image_Train_Ratio,8)
-                        for Noise_n = 1:size(Image_Train_Ratio,9)
-                            for Repeat_n = 1:size(Image_Train_Ratio,10)
-                                [~,min_ind] = min(abs(Image_Train_Ratio(1,1,Mode_n,Dynamic_Range_n,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n) - fx_interp));
-                                Measured_FA(1,1,Mode_n,Dynamic_Range_n,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n) = x_query(min_ind);
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-end
-disp('Lookup table applied.')
+    
+    generateLookupCPPandHeaderFiles(settings.PP_RF_Type,x_query,fx_interp); % Save lookup table as .cpp and .h files for sequence B1 map reconstruction
 end
