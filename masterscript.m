@@ -13,9 +13,9 @@ addpath(genpath('Functions')); load('initialise.mat');
 % Sequence specific settings can be found in 'Functions/Sequence Settings'
 settings.Dynamic_Range = 0:0.01:3; % Simulate a large dynamic range of B1
 settings.B0_Range_Hz = 0;%[0,100,500,1000]; % B0 offsets (Hz)
-settings.T1s = 1.5;%[0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
+settings.T1s = 0.5:0.05:3;%[0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
 settings.T2 = 25e-3; % T2 (s)
-settings.Repeats = 1; % Number of noise repeats to average
+settings.Repeats = 1000; % Number of noise repeats to average
 settings.Noise = [NaN,60]; % Simulated Noise Levels (peak SNR in Decibels) (NaN is no noise, used for generating lookup table)
 settings.Scheme = 'Sandwich'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
 settings.MSor3D = '3D'; % 2D or 3D
@@ -32,13 +32,14 @@ settings.Matrix_Size = [32 32]; % [NPE1 1] for single-slice or [NPE1 NPE2] for v
 settings.Hz_per_Volt = 8.3667; % Calibration value 8.3667 [Hz per Volt]
 settings.Ref_Voltage = 60; % Applied per channel RF reference voltage [Volts per channel]
 
-% Not implemented yet
-settings.MTx = 0; % Multi-channel mapping. Only works for synthetic data with defined Tx sensitivites
+% Synthetic body simulations (Not fully implemented yet)
+settings.MTx = 0; % Multi-channel mapping off (0) or on (1). Only works for synthetic data with defined Tx sensitivites
 settings.Modes = 8;
-settings.Enc_Scheme = 'Indiv'; % Encoding Method for multiTx mapping, 'FE' or 'Invert' or 'Indiv' or 'OneOFF'
+settings.Enc_Scheme = 'Indiv'; % Encoding Method for multiTx mapping, 'FE' or 'Invert' or 'Indiv' or 'OneOFF' or 'OneXpc' where X = 0 to 100
 settings.UseSyntheticData = 0; % Simulate on a realistic dynamic range with synthetic data (1) or (0)
 settings.Whole_body_mask = 1; % (1) to simulate whole body (0) to simulate just heart region (faster)
 settings.Syn_Slice = 60; % Slice of synthetic data to use
+settings.Mag_Track_SynInd = [76,100]; % Track magnetisation for voxel in heart
 
 settings.Gamma = 42.57747892e6; % [Hz per T]
 settings.Slice_Shift = 2e3; % Fixed slice shift (set to 0 to not fix) [Hz]
@@ -51,18 +52,20 @@ settings.EPG_trim_threshold = 0.01; % Threshold for trimming EPG states
 settings.Calc_FWHM = 0; % Calculate the FWHM of the PSF
 settings.Sum_PSF = 0; % Sum PSF if = 1 or if = 0 take only centre of PSF (Recommended leave set to 0)
 settings.Lookup_Size = 1e4; % Size of lookup table
-settings.Use_Previous_Lookup = 0; % Use previous lookup table (1) or generate new (default) (0)
+settings.Use_Previous_Lookup = 1; % Use previous lookup table (1) or generate new (default) (0)
 settings.verbose = 0;
 
 % Additional loop which can be hijacked for various purposes e.g. TR. Saves each loop in seperate .mat file.
 % settings.LoopFieldName = 'HR_TR';
 % settings.LoopValues = [0,1]';
-% settings.LoopFieldName = 'Ejection_Fraction';
-% settings.LoopValues = [0:0.01:1]';
+settings.LoopFieldName = 'Ejection_Fraction';
+settings.LoopValues = [0:0.01:1]';
 % settings.LoopFieldName = 'TR'; 
 % settings.LoopValues = [0.5:0.05:2]'; 
 % settings.LoopFieldName = 'Matrix_Size'; 
 % settings.LoopValues = [32:4:64;32:4:64]';
+%settings.LoopFieldName = 'Coil_Cycle'; 
+%settings.LoopValues = [1,0]';
 
 settings.Format = {'PE1','PE2','Tx','DR','B0','T1','Flow','Diff','Noise','Repeats'};
 

@@ -55,13 +55,12 @@ if strcmp(settings.LoopFieldName,'Ejection_Fraction')
     Diff_n = 1;
     
     for Additional_Loop_Counter = 1:length(settings.LoopValues)
-        %filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y')),'_Loop',num2str(Additional_Loop_Counter),'.mat'];
-        filename = ['Results_27-Jan-2024_Loop',num2str(Additional_Loop_Counter),'.mat'];
+        filename = [settings.filename,'_Loop',num2str(Additional_Loop_Counter),'.mat'];
         load([settings.filepath,filesep,filename],'results');
         FAs(Additional_Loop_Counter,:,:,:) = squeeze(mean(results.Measured_FA(1,1,1,:,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),[10]));
     end
     
-    Diff_FAs = (FAs(:,:,:) -Nominal_FA(1,:))./Nominal_FA(1,:); % Difference to EF = 0
+    Diff_FAs = (FAs(:,:,:) - Nominal_FA(1,:))./Nominal_FA(1,:); % Difference to EF = 0
     
     Mean_Diff_FAs = 100.*squeeze(mean(Diff_FAs,3));
     figure('color','w'); tiledlayout(1,2,'padding','none','tilespacing','compact');
@@ -88,6 +87,48 @@ if strcmp(settings.LoopFieldName,'Ejection_Fraction')
     colormap(bluewhitered)
     cb = colorbar; cb.Label.String = 'Percent Error, [%]';
     title('b) Mean DR');
+end
+
+if strcmp(settings.LoopFieldName,'Coil_Cycle')
+    T1_n = 1;
+    B0_n = 1;
+    Flow_n = 1;
+    Diff_n = 1;
+     for Additional_Loop_Counter = 1:length(settings.LoopValues)
+        filename = [settings.filename,'_Loop',num2str(Additional_Loop_Counter),'.mat'];
+        load([settings.filepath,filesep,filename],'results');
+        Rel_Image_Maps(:,:,:,Additional_Loop_Counter) = squeeze(mean(results.Rel_Image_Maps(:,:,:,1,B0_n,T1_n,Flow_n,Diff_n,Noise_n,:),10));
+     end
+    
+    % Calculate ground truth relative maps
+    GT_Rel_Image_Maps = settings.IT_Tx_FA_map./sum(abs(settings.IT_Tx_FA_map),3);
+    
+    for Tx_n = 1:8
+    % Remove NaNs
+    Masked_GT_Rel_Image_Maps = settings.Synthetic_Mask.*abs(GT_Rel_Image_Maps(:,:,Tx_n));
+    Masked_GT_Rel_Image_Maps(Masked_GT_Rel_Image_Maps == 0) = NaN;
+    GT_Rel_Long_Maps = Masked_GT_Rel_Image_Maps(~isnan(Masked_GT_Rel_Image_Maps));
+    
+    Masked_NCC_Rel_Image_Maps = settings.Synthetic_Mask.*abs(Rel_Image_Maps(:,:,Tx_n,find(settings.LoopValues == 0)));
+    NCC_Rel_Long_Maps = Masked_NCC_Rel_Image_Maps(~isnan(Masked_NCC_Rel_Image_Maps));
+
+    Masked_CC_Rel_Image_Maps = settings.Synthetic_Mask.*abs(Rel_Image_Maps(:,:,Tx_n,find(settings.LoopValues == 1)));
+    CC_Rel_Long_Maps = Masked_CC_Rel_Image_Maps(~isnan(Masked_CC_Rel_Image_Maps));
+    
+    NCC_nrmse(Tx_n) = rmse(NCC_Rel_Long_Maps,GT_Rel_Long_Maps ,'norm');
+    CC_nrmse(Tx_n) = rmse(CC_Rel_Long_Maps,GT_Rel_Long_Maps ,'norm');
+    end
+    
+    NCC_nrmse
+    CC_nrmse
+    
+    figure('color','w')
+    tiledlayout('flow','tilespacing','compact','padding','none'); nexttile;
+    imagesc(imtile(abs(Rel_Image_Maps(:,:,:,find(settings.LoopValues == 1))),'GridSize', [2 4]),[0 1])
+    axis image off
+    nexttile;
+    imagesc(imtile(abs(Rel_Image_Maps(:,:,:,find(settings.LoopValues == 1))),'GridSize', [2 4]),[0 1])
+    axis image off
 end
 
 

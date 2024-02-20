@@ -1,10 +1,10 @@
-function [Dynamic_Range,Tx_FA_map,Enc_Mat,W_Mat] = Calc_Tx(RF_Voltage,settings)
+function [Dynamic_Range,Tx_FA_map,Enc_Mat] = Calc_Tx(RF_Voltage,settings)
 % Based on nominal RF pulse voltage, now calculate FA for tx
 
 SyntheticDuke = load('Data\SyntheticDuke.mat'); % Reads in if current folder is Masterscript
 
 if settings.MTx == 0
-    settings.Modes = 'NA';
+    settings.Modes = 1;
     % Set up B1 Tx Field
     B1Tx = SyntheticDuke.B1Tx; % Transmit field 139 x 178 x 124 slices x 8 channels
     B1Tx_sumv = sum(bsxfun(@times,B1Tx(:,:,settings.Syn_Slice,:),exp(1i*angle(conj(B1Tx(76,100,Syn_Slice,:))))),4); % Aligned fields to give max B1 field in centre of heart voxel (i=73,j=97) 53 103
@@ -20,7 +20,7 @@ if settings.MTx == 0
     cb.Label.String = ['Flip angle, (',char(176),')'];
 elseif settings.MTx == 1
     % Calculate Encoding Matrix
-    [Enc_Mat,W_Mat] = Calc_Enc_Mat(settings.Enc_Scheme,settings.Modes);
+    [Enc_Mat] = Calc_Enc_Mat(settings.Enc_Scheme,settings.Modes);
     
     % Set up B1 Tx Field
     B1Tx = SyntheticDuke.B1Tx; % 139 x 178 x 124 slices x 8 channels
@@ -30,17 +30,16 @@ elseif settings.MTx == 1
         Tx_FA_map(:,:,mode) = (B1Tx_modes(:,:,mode)).*settings.Gamma.*1e-3.*360; % Convert B1 map to FA (degrees) (this is complex)
     end
     
-    figure();
+    figure('color','w');
     imagesc(imtile(abs(Tx_FA_map),'Gridsize',[1 settings.Modes])) % Plot B1Tx FA maps for each mode
-    title('Simulated Transmit Modes for Synthetic Body Model')
+    title('Transmit Modes')
     axis image
     set(gca,'YTick',[]); set(gca,'XTick',[]);
-    xlabel('Transmit Mode')
+    xlabel('Transmit Modes')
     xticks(((1:settings.Modes)).*size(Tx_FA_map,2) - size(Tx_FA_map,2)/2);
     xticklabels(1:settings.Modes);
 
-    Dynamic_Range = permute(squeeze(reshape(Tx_FA_map./(settings.nomIT_FA.*(180/pi)),[],1,8)),[2 1]);
-    
+    Dynamic_Range = permute(squeeze(reshape(Tx_FA_map./(settings.nomIT_FA.*(180/pi)),[],1,settings.Modes)),[2 1]);
     
     %Tx_Channel_FA_map = squeeze(abs(B1Tx(:,:,Syn_Slice,:)).*RF_Voltage.*Gamma.*1e-3.*360)/sqrt(50); % B1Tx in (T/V); % Convert B1 map to FA (degrees)
     %save('Tx_Channel_FA_map.mat','Tx_Channel_FA_map');

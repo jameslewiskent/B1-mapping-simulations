@@ -43,10 +43,16 @@ elseif  strcmpi(settings.Scheme,'Sandwich')
         Measured_FA = acos(Image_Ratio); % Eq. 2 from Chung, S. et al. MRM. 2010. 64(2):439-446.
     end
 elseif strcmpi(settings.Scheme,'GRE')
-        Measured_FA = NaN;
+        Measured_FA = Max_Val_IT1;
 end
 
-Measured_FA = (180/pi)*real(Measured_FA);
+if ~strcmpi(settings.Scheme,'GRE')
+    % Don't convert relative maps to FA (and keep complex)
+    Measured_FA = (180/pi)*real(Measured_FA);
+end
+
+
+% Image_Maps = Image_Maps.*exp(1i*angle(conj(Image_Maps(indi,indj,Mode_n,1,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n))))
 
 end
 

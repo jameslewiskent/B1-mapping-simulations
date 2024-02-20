@@ -13,11 +13,24 @@ settings = load_sequence_settings(settings);
 
 settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 settings.filepath = fullfile('Data',lower(settings.Scheme));
-%if isfield(settings,'Additional_Loop_Counter')
-%    settings.lookup_filename = [settings.Scheme,'_lookup_table_Loop',num2str(settings.Additional_Loop_Counter),'.mat'];
-%else
-    settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
-%end
+settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
+
+if settings.MTx == 1 && settings.Modes < 8  && strcmp(settings.Enc_Scheme,'Indiv')
+    disp('Multitransmit mapping is on, and encoding scheme is individual but the number of modes is less than the number of channels (8). Setting modes to 8.')
+    settings.Modes = 8;
+elseif settings.MTx == 1 && settings.Modes > 8  && strcmp(settings.Enc_Scheme,'Indiv')
+    disp('Multitransmit mapping is on, and encoding scheme is individual but the number of modes is more than the number of channels (8). Setting modes to 8.')
+    settings.Modes = 8;
+end
+
+if settings.UseSyntheticData == 0 && settings.MTx == 1
+    disp('Multitransmit mapping is only enabled for using synthetic data. Switching settings.UseSyntheticData to 1')
+    settings.UseSyntheticData = 1;
+end
+
+if settings.UseSyntheticData == 1
+   settings.Mag_Track_FAValues = 1; 
+end
 
 if ~any(settings.B0_Range_Hz == 0)
     disp('We require to simulate B0 = 0 Hz for lookup table calculation. Adding 0 Hz to B0_Range_Hz array.')
@@ -72,12 +85,8 @@ end
 % Calculate slice ordering
 settings = Calc_Slice_Order(settings);
 
-% Check if simulations already ran (only if not using additional loop)
-if isfield(settings,'LoopValues') && isfield(settings,'Additional_Loop_Counter')
-    already_ran = 0;
-else
-    [already_ran,settings.savefilename] = check_if_already_ran(settings);
-end
+% Check if simulations already ran
+[already_ran,settings.savefilename] = check_if_already_ran(settings);
 
 if already_ran % Don't re-simulate if input parameters unchanged
     disp('Input parameters unchanged - results not re-simulated.')
@@ -107,16 +116,16 @@ else % Simulate sequence
     [results] = analysis_function_core(simulation_results, settings,results);
     disp('Analysis finished.')
     
-    if length(settings.Dynamic_Range) > 100
+    if length(settings.Dynamic_Range) > 100 && settings.UseSyntheticData == 0
         [Dynamic_Range,DR_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
         results.Dynamic_Range = Dynamic_Range;
         results.DR_Values = DR_Values;
     end
     
     if isfield(settings,'Additional_Loop_Counter')
-        settings.savefilename = [settings.filename,'_Loop',num2str(settings.Additional_Loop_Counter),'.mat'];
+        settings.savefilename = [settings.filename,'_Loop',num2str(settings.Additional_Loop_Counter)];
     end
-    save(fullfile(settings.filepath,settings.savefilename),'results','settings')
+    save(fullfile(settings.filepath,[settings.savefilename,'.mat']),'results','settings')
 end
 
 % Display some energy statistics

@@ -5,7 +5,7 @@ function [results,settings] = run_and_plot(settings,plot_settings,results)
 % ---------------------------------------------------------------------- %
 % ----------- Following code handles simulation and plotting ----------- %
 % ---------------------------------------------------------------------- %
-settings.filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y-HH-mm')),'.mat'];
+settings.filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y-HH-mm'))];
 settings.savefilename = settings.filename; % In case of additional loop
 settings.Scheme = lower(settings.Scheme); % change all scheme names to lowercase to prevent capitalisation from re-running otherwise identical simulations
 
@@ -82,8 +82,6 @@ if settings.UseSyntheticData == 0
             xlabel('Time [ms]'); ylabel('Frequency');
             axis square
             legend({'TR','HRV'})
-            
-            
         end
         
         figure('color','w','Name','T1 Plot'); plot_T1_fig(results,settings,plot_settings); % T1 Plot
@@ -144,21 +142,22 @@ else
         slice_T2(slice_T1 ~= 0) = 50e-3; % Give all values same T2
         mask(slice_T1 ~= 0) = 1;
     end
-
+    settings.Synthetic_Mask = logical(mask);
+    settings.Long_Synthetic_Mask = reshape(settings.Synthetic_Mask,[],1);
     B1Rx = squeeze(SyntheticDuke.B1Rx(:,:,settings.Syn_Slice,:)); % Receive field 139 x 178 x 124 slices x 8 channels
     
-    % Don't re-simulate if input parameters unchanged
-    %if
+    if isfield(settings,'LoopValues') % Can add other loops here if you wish
+            for Additional_Loop_Counter = 1:length(settings.LoopValues)
+                settings.Additional_Loop_Counter = Additional_Loop_Counter;
+                [results,settings] = run_sequence_simulations(settings,results,plot_settings); % Simulate and process data
+                        figure('color','w','Name','Magnetisation Plot'); plot_mz(results,settings); % magnetisation plot
+            end
+            plot_Additional_Loop_fig(results,settings,plot_settings)
+    else
     % Function below handles simulating EPG image train and does analysis
     [results] = run_sequence_simulations(settings,results,plot_settings);
-    %else
-    %    disp('Input parameters unchanged - results not re-simulated.')
-    %end
-    Tx_FA_map = abs(Tx_FA_map); % now simulation is complete, absolute tx map applied (was complex)
-    if  mTx == 1
-        [outputArg1,outputArg2] = Pixelwise_Unencoding(Enc_Mat,W_Mat,settings.Modes)
+    figure('color','w','Name','Magnetisation Plot'); plot_mz(results,settings); % magnetisation plot
     end
-    
 end
 end
 

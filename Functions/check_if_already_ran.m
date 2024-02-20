@@ -1,6 +1,6 @@
-function [already_ran,filename] = check_if_already_ran(settings)
+function [already_ran,savefilename,filename] = check_if_already_ran(settings)
 % Check if simulations have already been run with the given parameters
-filename = settings.savefilename;
+savefilename = settings.savefilename;
 
 % remove filename from settings as this depends on when it is ran as it contains date and time
 try
@@ -17,11 +17,13 @@ for n = 1:length(list)
     
     % remove filename from settings as this depends on when it is ran as it contains date and time
     try
-    data.settings = rmfield(data.settings,'savefilename'); data.settings = rmfield(data.settings,'filename');
+    data.settings = rmfield(data.settings,'savefilename'); 
+    filename = data.settings.filename;
+    data.settings = rmfield(data.settings,'filename');
     end
     
     if isequaln(settings,data.settings) % Is equal (treat nans as equal)
-        filename = list(n).name;
+        savefilename = list(n).name;
         already_ran = true;
         break
     end

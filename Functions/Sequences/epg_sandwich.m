@@ -91,16 +91,7 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
     function [Train1,Train2,Train3,Cumulative_Time,N_imaging_RF,N_prep_RF,seq_TRs,Mag_Track] = Sandwich_Seq(T1,IT_FAs,PP_FAs,Velocity,Angle,Diff_co,settings)
         % Function runs inside relevent epg_SCHEME function and simulates a single set of image trains for specified parameters.
         
-        P = [0 0 1]'; % Start magnetisation in equilibrium
-        Mag_Track(:,1) = [P(3,1);0];
         IT_rTE = settings.IT_TR - settings.IT_TE;
-        Train1 = zeros(settings.Scan_Size(1),settings.Scan_Size(2),size(settings.Tx_FA_map,3));
-        Train2 = zeros(settings.Scan_Size(1),settings.Scan_Size(2),size(settings.Tx_FA_map,3));
-        Train3 = zeros(settings.Scan_Size(1),settings.Scan_Size(2),size(settings.Tx_FA_map,3));
-
-        Cumulative_Time = 0;
-        N_prep_RF = 0;
-        N_imaging_RF = 0;
         NTrains = 2;
         if settings.T1Corr == 1
         NTrains = 3;
@@ -119,7 +110,23 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
             seq_TRs = settings.TR.*ones(1,settings.Dummy_Scans+size(settings.Segment_Sizes,2)*settings.Scan_Size(2));
         end
         
+        % Simulate two compartments for ejection fraction
+        if settings.Ejection_Fraction ~= 0
+            Total_n = 2;
+        else
+            Total_n = 1;
+        end
+        
+        for EF_n = 1:Total_n 
         %%% START OF SEQUENCE %%%
+        Train1 = zeros(settings.Scan_Size(1),settings.Scan_Size(2),size(settings.Tx_FA_map,3));
+        Train2 = zeros(settings.Scan_Size(1),settings.Scan_Size(2),size(settings.Tx_FA_map,3));
+        Train3 = zeros(settings.Scan_Size(1),settings.Scan_Size(2),size(settings.Tx_FA_map,3));
+        P = [0 0 1]'; % Start magnetisation in equilibrium
+        Mag_Track(:,1) = [P(3,1);0];
+        Cumulative_Time = 0;
+        N_prep_RF = 0;
+        N_imaging_RF = 0;
         
         % Relative mapping
         if settings.perform_relative_mapping == 1
@@ -157,8 +164,6 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 
                 if size(settings.Tx_FA_map,3) > 1
                     Mode_n = size(settings.Tx_FA_map,3) - (settings.Dummy_Scans - Dummy_n); % Set mode for dummy scans to last in array
-                    % PP_FA =
-                    % IT_FA =
                 else
                     Mode_n = 1; % Set mode for dummy scans
                 end
@@ -245,9 +250,9 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 end
                 
                 
-                if settings.Ejection_Fraction ~= 0
+                if EF_n == 2% settings.Ejection_Fraction ~= 0
                     if T1 == 2.29 && settings.UseSyntheticData == 1 || settings.UseSyntheticData == 0% T1 of blood (hence currently simulating blood voxel)
-                        P(3,1) = P(3,1) + (1-P(3,1))*settings.Ejection_Fraction; % Increase Mz due to a fraction ejected/refreshed blood
+                        P(3,1) = 1;%P(3,1) + (1-P(3,1))*settings.Ejection_Fraction; % Increase Mz due to a fraction ejected/refreshed blood
                     end
                 end
                 
@@ -257,7 +262,6 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 Cumulative_Time = Cumulative_Time + T_relax;
             end
         end % End of Dummy Scans
-        
         
         for Mode_n = 1:size(settings.Tx_FA_map,3) % repeat for different modes of mTx array
             for PE2_n = 1:settings.Scan_Size(2)
@@ -357,9 +361,9 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                     end    
                     end
                     
-                    if settings.Ejection_Fraction ~= 0
+                    if EF_n == 2 %settings.Ejection_Fraction ~= 0
                         if T1 == 2.29 && settings.UseSyntheticData == 1 || settings.UseSyntheticData == 0% T1 of blood (hence currently simulating blood voxel)
-                            P(3,1) = P(3,1) + (1-P(3,1))*settings.Ejection_Fraction; % Increase Mz due to a fraction ejected/refreshed blood
+                            P(3,1) = 1;%P(3,1) + (1-P(3,1))*settings.Ejection_Fraction; % Increase Mz due to a fraction ejected/refreshed blood
                         end
                     end
                     
@@ -374,6 +378,27 @@ Average_10s_Power = 10*Total_Energy./Cumulative_Time;
                 end
             end
         end
+        
+        % Save Trains
+        if EF_n == 1
+        Train1_Comp1 = Train1;
+        Train2_Comp1 = Train2;
+        Train3_Comp1 = Train3;
+        elseif EF_n == 2
+        Train1_Comp2 = Train1;
+        Train2_Comp2 = Train2;
+        Train3_Comp2 = Train3;    
+        end
+        
+        end % End of dual compartment simulation for EF
+        
+        if settings.Ejection_Fraction ~= 0
+        % Mix compartments according to requested EF
+        Train1 = ((1-settings.Ejection_Fraction).*Train1_Comp1) + (settings.Ejection_Fraction.*Train1_Comp2);
+        Train2 = ((1-settings.Ejection_Fraction).*Train2_Comp1) + (settings.Ejection_Fraction.*Train2_Comp2);
+        Train3 = ((1-settings.Ejection_Fraction).*Train3_Comp1) + (settings.Ejection_Fraction.*Train3_Comp2);
+        end
+        
         %%% END OF SEQUENCE %%%
     end
 simulation_results.IT1 = IT1;

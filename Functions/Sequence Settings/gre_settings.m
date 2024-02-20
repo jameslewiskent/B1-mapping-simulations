@@ -22,20 +22,21 @@ settings.IT_RF_Time = 2e-3;
 settings.IT_RF_TBP = 4;
 settings.IT_RF_Pulse = Get_RF_Pulse(settings.nomIT_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
 end
-[settings.Dynamic_Range,settings.IT_Tx_FA_map,settings.Enc_Mat,settings.W_Mat] = Calc_Tx(max(settings.IT_RF_Pulse),settings); % Now pulse voltages are known, we can calculate the associated transmit field
+
+if settings.UseSyntheticData == 1
+[settings.Dynamic_Range,settings.IT_Tx_FA_map,settings.Enc_Mat] = Calc_Tx(max(settings.IT_RF_Pulse),settings); % Now pulse voltages are known, we can calculate the associated transmit field
+end
 
 settings.IT_TE = 1.31e-3; % Image Train Echo Time (s)
 settings.IT_TR = 3.14e-3; % Image Train Repitition Time (s)
-settings.Dummy_RF = 0; % Add 'dummy' RF pulses prior to reference image train which help achieve steady-state (not prior to prepared image train)
+settings.Dummy_RF = 100; % Add 'dummy' RF pulses prior to reference image train which help achieve steady-state
 settings.Segment_Factor = 1;
 settings.RF_Spoiling = 1; % RF_Spoiling on (1) or off (0)
-settings.RF_Spoiling_Increment_Checks = 20;
-settings.rf_spoiling_phases = cumsum((0:(settings.Scan_Size(1)*settings.Scan_Size(2)*settings.Segment_Factor*size(settings.IT_Tx_FA_map,3) + 1*settings.Dummy_ITRF*settings.Scan_Size(2)*settings.Segment_Factor*size(settings.IT_Tx_FA_map,3) + settings.RF_Spoiling_Increment_Checks))*50).*(pi./180); % Imaging phases (rad) (for RF spoiling- need enough for optional dummy scans too)
-settings.rf_spoiling_phases = settings.rf_spoiling_phases(settings.RF_Spoiling_Increment_Checks:end); % Accounts for checks run on scanner which increment RF spoiling increment
+settings.RF_Spoiling_Increment = 50*(pi/180);
 settings.PE1_Reordering = 'CentricInOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 settings.PE2_Reordering = 'LinearUp'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
-settings.Coil_Cycle = 1;
-settings.Coil_Cycle_Order = [1,4,7,2,5,8,3,6];
+settings.Coil_Cycle = 1; % Coil-cycle transmit channels off (0) on (1)
+settings.Coil_Cycle_Order = [1,4,7,2,5,8,3,6]; % NOT used if coil_cycle is off
 
 settings.train_spoils = 1.* ones(1,ceil(settings.Scan_Size(1)/settings.Segment_Factor));
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
@@ -72,9 +73,12 @@ if settings.RF_Spoiling == 0
     settings.rf_spoiling_phases = zeros(size(settings.rf_spoiling_phases));
 end
 
+if settings.Coil_Cycle == 1 
+    disp('Coil cycling is turned on.');
+end
 
 if settings.MTx == 1
-    disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.IT_Tx_FA_map,3)),' Transmit Mode Configuration.s']);
+    disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.IT_Tx_FA_map,3)),' Transmit Mode Configuration.']);
 end
 
 
