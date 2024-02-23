@@ -1,6 +1,5 @@
 function [pulse] = Get_HSN(n,TBP)
 % Aaron Hess, calculate an HSn pulse with 1024 points    
-% standard HS8 n=8, TBP=40
     NPts = 1024;
     beta = 5.298292365610485; % acosh(100) for 1% cutoff.
 

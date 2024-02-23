@@ -21,17 +21,19 @@ results.FWHM = cat(1,FWHM1,FWHM2,FWHM3);
 [results.Measured_FA] = Calc_FA(settings,results.Max_Val_IT1,results.Max_Val_IT2,results.Max_Val_IT3);
 
 if settings.UseSyntheticData == 1
-    % Reshape long synthetic data to image (might be single mode or multitransmit)
-    Image_Maps = reshape(permute(results.Measured_FA,[4,2,3,1,5,6,7,8,9]),[size(settings.IT_Tx_FA_map),1,size(results.Measured_FA,5:ndims(results.Measured_FA))]);
+    % Reshape long synthetic data to image (might be a single mode (e.g. CP) or multitransmit)
+    Image_Maps = reshape(permute(results.Measured_FA,[4,2,3,1,5,6,7,8,9]),[size(settings.Tx_FA_map),1,size(results.Measured_FA,5:ndims(results.Measured_FA))]);
     
     % Perform unencoding
     if settings.MTx == 1
-        Unencoded_Image_Maps = Pixelwise_Unencoding(settings,Image_Maps);
+        Image_Maps = Pixelwise_Unencoding(settings,Image_Maps);
     end
-
-    % Calculate relative maps
+    
     if strcmpi(settings.Scheme,'GRE')
-    results.Rel_Image_Maps = Unencoded_Image_Maps./sum(abs(Unencoded_Image_Maps),3);
+        % Calculate relative maps
+        results.Image_Maps = Image_Maps./sum(abs(Image_Maps),3);
+    else
+        results.Image_Maps = Image_Maps;
     end
 end
 

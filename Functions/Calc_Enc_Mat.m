@@ -8,6 +8,16 @@ for mode = 1:Modes
         if strcmp(Enc_Scheme,'FE')
             Enc_Mat(mode,channel) = exp((2*pi*1i*(mode-1)*channel)/Modes);
             
+        elseif strcmp(Enc_Scheme,'CP')
+            Enc_Mat(mode,channel) = exp((2*pi*1i*channel)/Modes);
+        
+        elseif strcmp(Enc_Scheme,'CPCP2')
+            if mode == 1
+            Enc_Mat(mode,channel) = exp((2*pi*1i*channel)/8); % CP
+            elseif mode == 2
+            Enc_Mat(mode,channel) = exp((2*pi*2i*channel)/8); % CP2  
+            end
+            
         elseif strcmp(Enc_Scheme,'Invert')
             if channel == mode
                 Enc_Mat(mode,channel) = -exp((2*pi*1i*(channel-1))/Channels);
@@ -17,7 +27,7 @@ for mode = 1:Modes
             
         elseif strcmp(Enc_Scheme,'Indiv')
             Enc_Mat = eye(Modes,Channels); % Execute one transmit channel at a time
-                     
+            
         elseif strcmp(Enc_Scheme,'OneOFF')
             if channel ~= mode
                 Enc_Mat(mode,channel) = exp((2*pi*1i*(channel-1))/Channels);
@@ -35,6 +45,5 @@ for mode = 1:Modes
         end
     end
 end
-
 end
 

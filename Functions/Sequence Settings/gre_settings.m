@@ -6,27 +6,24 @@ if strcmpi(settings.MSor3D,'default')
 end
 
 if strcmp(settings.MSor3D,'3D')
-settings.nomIT_FA = 5*pi/180; % Nominal Image Train Flip Angle in Radians
-settings.IT_RF_Type = 'RECT';
-settings.IT_RF_Time = 0.1e-3;
-settings.IT_RF_TBP = 'NA';
-settings.IT_RF_Pulse = Get_RF_Pulse(settings.nomIT_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
+settings.nom_FA = 5*pi/180; % Nominal Image Train Flip Angle in Radians
+settings.RF_Type = 'RECT';
+settings.RF_Time = 0.1e-3;
+settings.RF_TBP = 'NA';
+settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
 settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
 settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
 settings.Slice_Order_Type = 'Linear';
 elseif strcmp(settings.MSor3D,'2D')
-settings.nomIT_FA = 5*(pi/180); % Nominal Image Train Flip Angle in Radians
-settings.IT_RF_Type = 'wSINC';
-settings.IT_RF_Time = 2e-3;
-settings.IT_RF_TBP = 4;
-settings.IT_RF_Pulse = Get_RF_Pulse(settings.nomIT_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
+settings.nom_FA = 5*(pi/180); % Nominal Image Train Flip Angle in Radians
+settings.RF_Type = 'wSINC';
+settings.RF_Time = 2e-3;
+settings.RF_TBP = 4;
+settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 end
-
-if settings.UseSyntheticData == 1
-[settings.Dynamic_Range,settings.IT_Tx_FA_map,settings.Enc_Mat] = Calc_Tx(max(settings.IT_RF_Pulse),settings); % Now pulse voltages are known, we can calculate the associated transmit field
-end
-
+settings.N_TRs = 1; % N/A for GRE sequence as implemented
+settings.TR = 0; % No TR long for GRE sequence as implemented
 settings.IT_TE = 1.31e-3; % Image Train Echo Time (s)
 settings.IT_TR = 3.14e-3; % Image Train Repitition Time (s)
 settings.Dummy_RF = 100; % Add 'dummy' RF pulses prior to reference image train which help achieve steady-state
@@ -58,27 +55,17 @@ elseif settings.Segment_Factor ~= 1
 end
 
 % Notificaitons to user
-if settings.UseSyntheticData == 0
-    settings.RF_Phase = zeros(1,size(settings.Tx_FA_map,3)); % Otherwise it is set in the synthetic data loop
-else
-    
-end
-
 if settings.HR_TR == 1
     disp(['Heartrate variable TR option is on, TR period non-constant. Mean TR = ',num2str(settings.TR),'s. Variance = ',num2str(settings.HR_SD),'s. Min TR = ',num2str(settings.HR_minTR),'s.'])
 end
 
 if settings.RF_Spoiling == 0
     disp('RF spoiling is turned off.')
-    settings.rf_spoiling_phases = zeros(size(settings.rf_spoiling_phases));
+    settings.RF_Spoiling_Increment = 0;
 end
 
 if settings.Coil_Cycle == 1 
     disp('Coil cycling is turned on.');
-end
-
-if settings.MTx == 1
-    disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.IT_Tx_FA_map,3)),' Transmit Mode Configuration.']);
 end
 
 

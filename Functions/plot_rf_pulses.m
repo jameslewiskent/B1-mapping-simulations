@@ -1,6 +1,6 @@
 function plot_rf_pulses(settings)
 str = {};
-if isfield(settings,'IT_RF_Pulse') && any(settings.IT_RF_Pulse ~= 0)
+if isfield(settings,'RF_Pulse') && any(settings.IT_RF_Pulse ~= 0)
 RF_Pulse_Size = size(settings.IT_RF_Pulse,2);  
 RF_Pulse_Time = settings.IT_RF_Time;   
 RF_Sample_Time = RF_Pulse_Time./RF_Pulse_Size;

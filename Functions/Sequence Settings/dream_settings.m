@@ -7,11 +7,11 @@ end
 if strcmp(settings.MSor3D,'3D')
 settings.title_string = 'e) 3DREAM';
 
-settings.nomIT_FA = 6*pi/180; % Nominal Image Train Flip Angle in Radians
-settings.IT_RF_Type = 'RECT';
-settings.IT_RF_Time = 0.2e-3;
-settings.IT_RF_TBP = 'NA'; % Asymetric windowed sinc pulse
-settings.IT_RF_Pulse = Get_RF_Pulse(settings.nomIT_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
+settings.nom_FA = 6*pi/180; % Nominal Image Train Flip Angle in Radians
+settings.RF_Type = 'RECT';
+settings.RF_Time = 0.2e-3;
+settings.RF_TBP = 'NA'; % Asymetric windowed sinc pulse
+settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
 settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
 settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
@@ -33,11 +33,11 @@ settings.Echo_Order = 'STEFirst'; % 'FIDFirst' or 'STEFirst'
 elseif strcmp(settings.MSor3D,'2D')
 settings.title_string = 'e) 2D MS DREAM';
 
-settings.nomIT_FA = 10*pi/180; % Nominal Image Train Flip Angle in Radians
-settings.IT_RF_Type = 'wSINC';
-settings.IT_RF_Time = 0.7e-3;
-settings.IT_RF_TBP = 3; % Asymetric windowed sinc pulse
-settings.IT_RF_Pulse = Get_RF_Pulse(settings.nomIT_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
+settings.nom_FA = 10*pi/180; % Nominal Image Train Flip Angle in Radians
+settings.RF_Type = 'wSINC';
+settings.RF_Time = 0.7e-3;
+settings.RF_TBP = 3; % Asymetric windowed sinc pulse
+settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
 settings.PP_Shifts = settings.Slice_Shifts;
 settings.Slice_Order_Type = 'OddThenEven';
@@ -56,11 +56,11 @@ settings.Ts = settings.TE1 + settings.TE2; % Ts, Time between 2 STEAM preparatio
 settings.Td = 8e-3; % Time between first preparation pulse and imaging pulse (s)
 settings.Echo_Order = 'STEFirst'; % 'FIDFirst' or 'STEFirst'
 end
-
+settings.RF_Spoiling = 1; % RF_Spoiling on (1) or off (0)
+settings.RF_Spoiling_Increment = 50*(pi/180);
 settings.prep_spoils = 10; % Number of unit gradients to move through after STEAM preparation (spoiling)
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
-settings.rf_spoiling_phases = cumsum((0:settings.Scan_Size(1)*settings.Scan_Size(2))*50*(pi./180)); % Imaging RF phases (rad) (for RF spoiling)
 settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
 
 settings.Segment_Sizes = settings.Scan_Size(1); % No segmentation for DREAM
@@ -73,6 +73,10 @@ if settings.TE2 < settings.TE1
     error('First echo time is longer than the second!')    
 end
 
+if settings.RF_Spoiling == 0
+    disp('RF spoiling is turned off.')
+    settings.RF_Spoiling_Increment = 0;
+end
 
 % Need to calculate time between neihgbouring slices
 % Calculate slice ordering

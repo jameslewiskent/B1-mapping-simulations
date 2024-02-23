@@ -23,7 +23,7 @@ if strcmp(settings.LoopFieldName,'TR')
     end
     DR_ratio = DR./settings.LoopValues';
     figure('color','w','Units','normalized','position',[0.2,0.3,0.575,0.486]);
-    plot(settings.LoopValues,DR_ratio,'rx'); hold on
+    plot(settings.LoopValues,DR,'rx'); hold on
     xlim([0.5 2])
     ylim([1 10])
     %ylim([floor(min(DR_ratio)*10)/10 ceil(max(DR_ratio)*10)/10])
@@ -127,8 +127,30 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
     imagesc(imtile(abs(Rel_Image_Maps(:,:,:,find(settings.LoopValues == 1))),'GridSize', [2 4]),[0 1])
     axis image off
     nexttile;
-    imagesc(imtile(abs(Rel_Image_Maps(:,:,:,find(settings.LoopValues == 1))),'GridSize', [2 4]),[0 1])
+    imagesc(imtile(abs(Rel_Image_Maps(:,:,:,find(settings.LoopValues == 0))),'GridSize', [2 4]),[0 1])
     axis image off
+    
+    % RMSE inside heart
+    for Tx_n = 1:8
+    % Remove NaNs
+    Masked_GT_Rel_Image_Maps = settings.Whole_Heart_Mask.*abs(GT_Rel_Image_Maps(:,:,Tx_n));
+    Masked_GT_Rel_Image_Maps(Masked_GT_Rel_Image_Maps == 0) = NaN;
+    GT_Rel_Long_Maps = Masked_GT_Rel_Image_Maps(~isnan(Masked_GT_Rel_Image_Maps));
+    
+    Masked_NCC_Rel_Image_Maps = settings.Whole_Heart_Mask.*abs(Rel_Image_Maps(:,:,Tx_n,find(settings.LoopValues == 0)));
+    Masked_NCC_Rel_Image_Maps(Masked_NCC_Rel_Image_Maps == 0) = NaN;
+    NCC_Rel_Long_Maps = Masked_NCC_Rel_Image_Maps(~isnan(Masked_NCC_Rel_Image_Maps));
+
+    Masked_CC_Rel_Image_Maps = settings.Whole_Heart_Mask.*abs(Rel_Image_Maps(:,:,Tx_n,find(settings.LoopValues == 1)));
+    Masked_CC_Rel_Image_Maps(Masked_CC_Rel_Image_Maps == 0) = NaN;
+    CC_Rel_Long_Maps = Masked_CC_Rel_Image_Maps(~isnan(Masked_CC_Rel_Image_Maps));
+    
+    NCC_nrmse(Tx_n) = rmse(NCC_Rel_Long_Maps,GT_Rel_Long_Maps ,'norm');
+    CC_nrmse(Tx_n) = rmse(CC_Rel_Long_Maps,GT_Rel_Long_Maps ,'norm');
+    end
+    
+    mean(NCC_nrmse)
+    mean(CC_nrmse)
 end
 
 

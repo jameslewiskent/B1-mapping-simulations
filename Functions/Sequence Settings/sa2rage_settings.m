@@ -5,13 +5,13 @@ if strcmpi(settings.MSor3D,'default')
     settings.MSor3D = '3D'; % Set the 'default' scheme
 end
 
-settings.nomIT1_FA = 4*pi/180; % Nominal Image Train 1 Flip Angle in Radians
-settings.nomIT2_FA = 11*pi/180; % Nominal Image Train 2 Flip Angle in Radians
-settings.IT_RF_Type = 'RECT';
-settings.IT_RF_Time = 0.1e-3;
-settings.IT_RF_TBP = 'NA';
-settings.IT1_RF_Pulse = Get_RF_Pulse(settings.nomIT1_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
-settings.IT2_RF_Pulse = Get_RF_Pulse(settings.nomIT2_FA,settings.IT_RF_Type,settings.IT_RF_Time,settings.IT_RF_TBP,settings.Ref_Voltage);
+settings.nom_FA = 4*pi/180; % Nominal Image Train 1 Flip Angle in Radians
+settings.nom_FA2 = 11*pi/180; % Nominal Image Train 2 Flip Angle in Radians
+settings.RF_Type = 'RECT';
+settings.RF_Time = 0.1e-3;
+settings.RF_TBP = 'NA';
+settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
+settings.RF_Pulse2 = Get_RF_Pulse(settings.nom_FA2,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
 settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
 settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
@@ -31,9 +31,7 @@ settings.TR = 2.4; % Long TR time (s)
 settings.Dummy_Scans = 4; % Add 'dummy' scans which help achieve steady-state
 settings.Segment_Factor = 1;
 settings.RF_Spoiling = 1; % RF_Spoiling on (1) or off (0)
-settings.RF_Spoiling_Increment_Checks = 20;
-settings.rf_spoiling_phases = cumsum((0:(2*settings.Dummy_Scans*settings.Scan_Size(1)*settings.Scan_Size(2)*settings.Segment_Factor*size(settings.Tx_FA_map,3) + 2*size(settings.Tx_FA_map,3)*settings.Scan_Size(1)*settings.Scan_Size(2) + 1*settings.Dummy_Scans + 1*settings.Segment_Factor*size(settings.Tx_FA_map,3) + settings.RF_Spoiling_Increment_Checks))*50).*(pi./180); % Imaging phases (rad) (for RF spoiling- need enough for optional dummy scans too)
-settings.rf_spoiling_phases = settings.rf_spoiling_phases(settings.RF_Spoiling_Increment_Checks:end);
+settings.RF_Spoiling_Increment = 50*(pi/180);
 settings.PE1_Reordering = 'CentricOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 settings.PE2_Reordering = 'CentricOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 
@@ -59,17 +57,9 @@ elseif settings.Segment_Factor ~= 1
 end
 
 % Notificaitons to user
-if settings.UseSyntheticData == 0
-    settings.RF_Phase = zeros(1,size(settings.Tx_FA_map,3)); % Otherwise it is set in the synthetic data loop
-end
-
 if settings.RF_Spoiling == 0
     disp('RF spoiling is turned off.')
-    settings.rf_spoiling_phases = zeros(size(settings.rf_spoiling_phases));
-end
-
-if settings.MTx == 1
-    disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.Tx_FA_map,3)),' Transmit Mode Configuration.s']);
+    settings.RF_Spoiling_Increment = 0;
 end
 
 if settings.TD1 < settings.PP_RF_Time + 0.5*settings.Segment_Sizes(1)*settings.IT_TR

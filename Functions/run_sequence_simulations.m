@@ -11,25 +11,36 @@ settings = Calc_Slice_Shifts(settings); % Calculate Slice Shifts for MS sequence
 % Load sequence specific settings
 settings = load_sequence_settings(settings);
 
+
+if settings.UseSyntheticData == 1
+[settings.Dynamic_Range,settings.Tx_FA_map,settings.Enc_Mat] = Calc_Tx(max(settings.RF_Pulse),settings); % Now pulse voltages are known, we can calculate the associated transmit field
+disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.Tx_FA_map,3)),' Transmit Mode Configuration.']);
+end
+
 settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 settings.filepath = fullfile('Data',lower(settings.Scheme));
 settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
 
-if settings.MTx == 1 && settings.Modes < 8  && strcmp(settings.Enc_Scheme,'Indiv')
+if settings.UseSyntheticData == 1 && settings.Modes < 8  && strcmp(settings.Enc_Scheme,'Indiv')
     disp('Multitransmit mapping is on, and encoding scheme is individual but the number of modes is less than the number of channels (8). Setting modes to 8.')
     settings.Modes = 8;
-elseif settings.MTx == 1 && settings.Modes > 8  && strcmp(settings.Enc_Scheme,'Indiv')
+elseif settings.UseSyntheticData == 1 && settings.Modes > 8  && strcmp(settings.Enc_Scheme,'Indiv')
     disp('Multitransmit mapping is on, and encoding scheme is individual but the number of modes is more than the number of channels (8). Setting modes to 8.')
     settings.Modes = 8;
 end
 
-if settings.UseSyntheticData == 0 && settings.MTx == 1
-    disp('Multitransmit mapping is only enabled for using synthetic data. Switching settings.UseSyntheticData to 1')
-    settings.UseSyntheticData = 1;
-end
-
 if settings.UseSyntheticData == 1
    settings.Mag_Track_FAValues = 1; 
+end
+
+if settings.UseSyntheticData == 1 && settings.Modes == 1 && ~strcmp(settings.Enc_Scheme,'CP')
+    disp('For Modes = 1 encoding scheme is fixed as CP. Setting settings.Enc_Scheme = "CP"') 
+    settings.Enc_Scheme = 'CP';     
+end
+
+if settings.UseSyntheticData == 1 && settings.Repeats > 1
+    disp('Setting repeats to 1.')
+   settings.Repeats = 1;
 end
 
 if ~any(settings.B0_Range_Hz == 0)
@@ -41,6 +52,11 @@ if ~any(settings.Velocities == 0)
     disp('We require to simulate flow velocity  = 0 ms^{-1} for lookup table calculation. Adding 0 ms^{-1} to Velocities array.')
     settings.Velocities = [0,settings.Velocities];
     settings.Angles = [0,settings.Angles];
+end
+
+if length(settings.Velocities) ~= length(settings.Angles)
+    disp('Velocities and Angles settings must have same number of entries')
+   settings.Angles = repmat(settings.Angles(1),1,length(settings.Velocities));
 end
 
 if ~any(settings.Diff_coeffs == 0)
@@ -93,25 +109,10 @@ if already_ran % Don't re-simulate if input parameters unchanged
     load(fullfile(settings.filepath,settings.savefilename),'results','settings')
 else % Simulate sequence
     disp('Starting simulations.')
-    if strcmpi(settings.Scheme,'SatTFL')
-        [simulation_results,settings] = epg_sattfl(settings);
-    elseif strcmpi(settings.Scheme,'Sandwich')
-        [simulation_results,settings] = epg_sandwich(settings);
-    elseif strcmpi(settings.Scheme,'SA2RAGE')
-        [simulation_results,settings] = epg_sa2rage(settings);
-    elseif strcmpi(settings.Scheme,'AFI')
-        [simulation_results,settings] = epg_afi(settings);
-    elseif strcmpi(settings.Scheme,'DREAM')
-        [simulation_results,settings] = epg_dream(settings);
-    elseif strcmpi(settings.Scheme,'GRE')
-        [simulation_results,settings] = epg_gre(settings);
-    else
-        error('ABORTED: Scheme not recognised, please input either ''SatTFL'', ''Sandwich'', ''DREAM'', ''AFI'', ''SA2RAGE'' OR ''ALL''.')
-    end
+    [simulation_results,settings] = seq_loop(settings); 
     disp('Simulations successful!')
     
     % Process simulation results
-    % Call for however modes are required
     disp('Starting analysis.')
     [results] = analysis_function_core(simulation_results, settings,results);
     disp('Analysis finished.')

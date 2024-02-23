@@ -4,7 +4,7 @@ RF_Samples = 1e3; % Default sample size
 
 % Reference Pulse
 Ref_RF_Samples = 500;
-Ref_RF_Pulse_Time = 0.5e-3; % 1 ms RECT pulse
+Ref_RF_Pulse_Time = 0.5e-3; % 0.5 ms RECT pulse achieves 90 degree FA
 Ref_RF_Pulse_Shape = ones(1,Ref_RF_Samples);
 Ref_Amp_Integral = abs(sum(abs(Ref_RF_Pulse_Shape).*exp(1i*angle(Ref_RF_Pulse_Shape))));
 Ref_RF_Sample_Time = Ref_RF_Pulse_Time/Ref_RF_Samples; 
@@ -25,6 +25,8 @@ elseif strcmpi(RF_Pulse_Type,'HS4')
     RF_Pulse_Shape = Get_HS4;
 elseif strcmpi(RF_Pulse_Type(1:2),'HS')
     RF_Pulse_Shape = Get_HSN(str2double(RF_Pulse_Type(3)),TBP); % Scaled relative to RECT
+elseif strcmpi(RF_Pulse_Type,'ARB')
+    RF_Pulse_Shape = Get_ARB;
 else
     error('@Get_RF_Pulse: Unknown RF pulse type. Valid options are: RECT, SINC, wSINC or HSN where N = 1...8')
 end
