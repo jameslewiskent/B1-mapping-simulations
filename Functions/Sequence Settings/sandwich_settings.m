@@ -47,8 +47,8 @@ settings.PP_RF_Pulse = Get_RF_Pulse(settings.nomPP_FA,settings.PP_RF_Type,settin
 end
 
 settings.T1Corr = 0; % Additional image train for T1 correction (experimental modification)
-settings.IT_TE = 0.75e-3;%1.78e-3; % Image Train Echo Time (s)
-settings.IT_TR = 2.5e-3;%3.9e-3; % Image Train Repitition Time (s)
+settings.IT_TE = 0.87e-3; % Image Train Echo Time (s)
+settings.IT_TR = 2.7e-3; % Image Train Repitition Time (s)
 settings.TR = 1; % Long TR time (s)
 settings.Dummy_Scans = 2; % Add 'dummy' scans which help achieve steady-state
 settings.Dummy_ITRF = 0; % Add 'dummy' RF pulses prior to reference image train which help achieve steady-state (not prior to prepared image train)
@@ -58,8 +58,9 @@ settings.RF_Spoiling_Increment = 50*(pi/180);
 settings.PE1_Reordering = 'CentricInOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 settings.PE2_Reordering = 'LinearUp'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 
-settings.perform_relative_mapping = 0; % Simulate relative mapping prior to absolute maps
-settings.prep_spoils = 1.* ones(1,settings.Dummy_Scans+settings.Segment_Factor*settings.Modes*settings.Scan_Size(2)+1); %2.^(0:(Dummy_Scans+Segment_Factor*size(Tx_FA_map,3))); % Number of unit gradients to move through after pre-pulse (spoiling- need enough for optional dummy scans too)
+settings.perform_relative_mapping = 0; % Simulate relative mapping prior to absolute maps7
+settings.N_TRs = (settings.Dummy_Scans + settings.Segment_Factor*settings.Scan_Size(2))*settings.Modes;
+settings.prep_spoils = 1.* ones(1,settings.N_TRs); % Number of unit gradients to move through after pre-pulse (spoiling- need enough for optional dummy scans too)
 settings.train_spoils = 1.* ones(1,ceil(settings.Scan_Size(1)/settings.Segment_Factor));
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
 settings.man_spoil = 1; % Sets transverse magnetisation to 0 (if =1) assumes 'perfect' spoiling - useful for debugging
@@ -76,7 +77,6 @@ for Seg_n = 1:settings.Segment_Factor
     settings.Segment_Sizes(Seg_n)= ceil(Train_Size_Tot./(settings.Segment_Factor+1-Seg_n));
     Train_Size_Tot =  settings.Scan_Size(1) - sum(settings.Segment_Sizes,'all');
 end
-settings.N_TRs = (settings.Dummy_Scans + size(settings.Segment_Sizes,2)*settings.Scan_Size(2))*settings.Modes;
 
 if sum(settings.Segment_Sizes,'all') ~= settings.Scan_Size(1)
     error('ERROR: epg_func: Number of phase encodes in segments does not equal size of train requested.')

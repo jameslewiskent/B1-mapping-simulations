@@ -4,7 +4,7 @@ function [Dynamic_Range,first_last_values] = Calc_Dynamic_Range(results,settings
 % flip angle and standard deviation is less than settings.percent_under% of the nominal value
 
 if strcmpi(settings.Scheme,'AFI')
-    x_axis = settings.Dynamic_Range.*settings.nomFA*(180/pi);
+    x_axis = settings.Dynamic_Range.*settings.nom_FA*(180/pi);
 else
     x_axis = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
 end

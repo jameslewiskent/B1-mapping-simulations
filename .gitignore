@@ -1,3 +1,8 @@
 *.mat
-*.asv
 !initialise.mat
+*.asv
+/LookupTables
+*.cpp
+*.h
+sandwich_lookup_table.mat
+sa2rage_lookup_table.mat

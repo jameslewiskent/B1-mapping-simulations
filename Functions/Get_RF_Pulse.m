@@ -1,4 +1,4 @@
-function [RF_Pulse,RF_Sample_Time,RF_Pulse_Shape] = Get_RF_Pulse(nomFA,RF_Pulse_Type,RF_Pulse_Time,TBP,Ref_Voltage)
+function [RF_Pulse,RF_Sample_Time,RF_Pulse_Shape] = Get_RF_Pulse(nom_FA,RF_Pulse_Type,RF_Pulse_Time,TBP,Ref_Voltage)
 % Get RF pulse (amplitude in volts) for a nominal FA 
 RF_Samples = 1e3; % Default sample size
 
@@ -41,7 +41,7 @@ Amp_Integral_Scale = (Ref_Amp_Integral./Amp_Integral);
 Time_Scale = (Ref_RF_Sample_Time./RF_Sample_Time);
 
 % Scale pulse voltage based on amplitude integral
-RF_Pulse = (2*nomFA/pi)*RF_Pulse_Shape*Amp_Integral_Scale*Time_Scale*Ref_Voltage;
+RF_Pulse = (2*nom_FA/pi)*RF_Pulse_Shape*Amp_Integral_Scale*Time_Scale*Ref_Voltage;
 
 end
 

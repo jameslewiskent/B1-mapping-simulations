@@ -1,8 +1,10 @@
 function plot_T1_fig(results,settings,plot_settings)
 % T1 plot
+x_maxDR = 10;
+x_maxFA = 180;
 
 if strcmpi(settings.Scheme,'AFI')
-    Nominal_FA = settings.Dynamic_Range.*settings.nomFA*(180/pi);
+    Nominal_FA = settings.Dynamic_Range.*settings.nom_FA*(180/pi);
 else
     Nominal_FA = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
 end
@@ -11,17 +13,20 @@ if plot_settings.Dynamic_Range_Axis == 1
     [Dynamic_Range,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
     Dynamic_Range_Value = Dynamic_Range_Values(1);
     Axis_Values = Nominal_FA./Dynamic_Range_Values(1); % Rescale axis based on dynamic range
+    x_max = x_maxDR;
 else
     [Dynamic_Range,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
     Dynamic_Range_Value = 1;
     Axis_Values = Nominal_FA;
+    x_max = x_maxFA;
 end
 
 if plot_settings.Plot_Difference == 1
     Subtract_Linear = Axis_Values;
+    plot([0,x_max],[0,0],'color','k','LineStyle','--','handlevisibility','off'); hold on
 else
     Subtract_Linear = 0;
-    plot([0,Axis_Values(end)],[0,Axis_Values(end)],'color',[0.8 0.8 0.8],'handlevisibility','off'); hold on
+    plot([0,x_max],[0,x_max],'color','k','LineStyle','--','handlevisibility','off'); hold on
 end
 
 if size(settings.T1s,2) == 6
@@ -69,15 +74,15 @@ title(settings.title_string,'Fontsize',16)
 if plot_settings.Dynamic_Range_Axis == 1 && plot_settings.Plot_Difference == 0
     xlabel('Applied Dynamic Range, [a.u.]'); xticks(1:10)
     ylabel('Measured Dynamic Range, [a.u.]');
-    xlim([0 10]); ylim([0 10]);
+    xlim([0 x_maxDR]); ylim([0 10]);
 elseif plot_settings.Dynamic_Range_Axis == 1 && plot_settings.Plot_Difference == 1
     xlabel('Applied Dynamic Range, [a.u.]'); xticks(1:10)
     ylabel('[Measured - Applied] Dynamic Range, [a.u.]');
-    xlim([0 10]); ylim([-1 1]);
+    xlim([0 x_maxDR]); ylim([-1 1]);
 elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference == 0
     xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:220)
     ylabel(['Measured FA, [',char(176),']']);
-    xlim([0 180]); ylim([0 180]);
+    xlim([0 x_maxFA]); ylim([0 x_maxFA]);
     % Add dynamic range bar if there are sufficient repeats
     if settings.Repeats >= 20 && ~isnan(Dynamic_Range) && plot_settings.Dyn_Range_pc ~= 0
         text((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2,10,['DR: ',num2str(Dynamic_Range,'%.1f')],'horizontalalignment','center','verticalalignment','middle','color','k')
@@ -89,7 +94,7 @@ elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference ==
 elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference == 1
     xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:220)
     ylabel(['[Measured - Nominal] FA, [',char(176),']']);
-    xlim([0 180]); ylim([-90 90]);
+    xlim([0 x_maxFA]); ylim([-x_maxFA/2 x_maxFA/2]);
     % Add dynamic range bar if there are sufficient repeats
     if settings.Repeats >= 20 && ~isnan(Dynamic_Range) && plot_settings.Dyn_Range_pc ~= 0
         text((Dynamic_Range_Values(2)+Dynamic_Range_Values(1))/2,10,['DR: ',num2str(Dynamic_Range,'%.1f')],'horizontalalignment','center','verticalalignment','middle','color','k')

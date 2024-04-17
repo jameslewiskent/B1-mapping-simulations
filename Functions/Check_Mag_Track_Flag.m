@@ -5,7 +5,7 @@ function settings = Check_Mag_Track_Flag(Dynamic_Range_n,T1_n,B0_n,Flow_n,Diff_n
 if ~strcmpi(settings.Scheme,'AFI')
     FARange = settings.Dynamic_Range(1,:)*settings.nomPP_FA*(180/pi);
 elseif strcmpi(settings.Scheme,'AFI')
-    FARange = settings.Dynamic_Range(1,:)*settings.nomFA*(180/pi);
+    FARange = settings.Dynamic_Range(1,:)*settings.nom_FA*(180/pi);
 end
 
 % Find index of DR that is closest to the requested FA values for

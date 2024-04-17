@@ -3,7 +3,7 @@ figure('color','w');
 for Scheme_n = 1:length(settings)
     
     if strcmpi(settings(1,Scheme_n).Scheme,'AFI')
-        Nominal_FA = settings(1,Scheme_n).Dynamic_Range.*settings(1,Scheme_n).nomFA*(180/pi);
+        Nominal_FA = settings(1,Scheme_n).Dynamic_Range.*settings(1,Scheme_n).nom_FA*(180/pi);
     else
         Nominal_FA = settings(1,Scheme_n).Dynamic_Range.*settings(1,Scheme_n).nomPP_FA*(180/pi);
     end

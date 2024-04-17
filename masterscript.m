@@ -11,16 +11,16 @@ addpath(genpath('Functions')); load('initialise.mat');
 % ---------------------------------------------------------------------- %
 % ----------------------- Simulation Parameters ------------------------ %
 % ---------------------------------------------------------------------- %
-settings.MSor3D = '3D'; % 2D or 3D
+settings.MSor3D = '3D'; % 2D or 3D or default
 settings.Scheme = 'Sandwich'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
 settings.Dynamic_Range = 0:0.01:3; % Simulate a large dynamic range of B1
-settings.B0_Range_Hz = 0; %[0,100,500,1000]; % B0 offsets (Hz)
-settings.T1s = 1.5; %[0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
+settings.B0_Range_Hz = 0;%[0,100,500,1000]; % B0 offsets (Hz)
+settings.T1s = [0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
 settings.T2 = 25e-3; % T2 (s)
 settings.Repeats = 1000; % Number of noise repeats to average
 settings.Noise = [NaN,60]; % Simulated Noise Levels (peak SNR in Decibels) (NaN is no noise, used for generating lookup table)
-settings.Velocities = [0,0.2]; %[0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
-settings.Angles = [0,0]; %[0,0,0,0]; % Angle of coherent flow (rad)
+settings.Velocities = 0; %[0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
+settings.Angles = 0; %[0,0,0,0]; % Angle of coherent flow (rad)
 settings.Diff_coeffs = 0; %[0,3e-9]; % Diffusion co-efficient (m^2/s) (isotropic)
 settings.Matrix_Size = [32 32]; % [NPE1 1] for single-slice or [NPE1 NPE2] for volumetric sequence simulation
 settings.PE1_Resolution = 1; % 4/8, 5/8, 6/8, 7/8 or 1
@@ -31,11 +31,11 @@ settings.PE2_Partial_Fourier = 1; % 4/8, 5/8, 6/8, 7/8 or 1
 % ---------------------------------------------------------------------- %
 % ---------------- Synthetic Body Simulation Parameters ---------------- %
 % ---------------------------------------------------------------------- %
-settings.UseSyntheticData = 1; % Simulate on a realistic dynamic range with synthetic data (1) or (0). (Replaces Dynamic_Range and T1s with synthetic body values)
-settings.Modes = 2; % Multi-channel modes. (1) is CP. Only works for synthetic data with defined Tx sensitivites
+settings.UseSyntheticData = 0; % Simulate on a realistic dynamic range with synthetic data (1) or (0). (Replaces Dynamic_Range and T1s with synthetic body values)
+settings.Modes = 1; % Multi-channel modes. (1) is CP. Only works for synthetic data with defined Tx sensitivites
 settings.Enc_Scheme = 'CPCP2'; % Encoding scheme for mTx mapping, 'FE' or 'Invert' or 'Indiv' or 'OneOFF' or 'OneXpc' where X = 0 to 100
-settings.T1_blood = 2.29; % T1 of arterial blood [s] ?
-settings.T1_heart = 1.925; % T1 of heart [s] ?
+settings.T1_blood = 2.29; % T1 of arterial blood [s]
+settings.T1_heart = 1.925; % T1 of heart [s]
 settings.Whole_body_mask = 1; % (1) to simulate whole body (0) to simulate just heart region (1) which is quicker
 settings.Syn_Slice = 60; % Slice of synthetic data to use
 settings.Mag_Track_SynInd = [76,100]; % Track magnetisation for voxel in heart
