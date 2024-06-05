@@ -12,7 +12,7 @@ function [Train1,Train2,Cumulative_Time,N_imaging_RF,N_prep_RF,Mag_Track] = epg_
 %           Eq. [5] from Nehrke, K. et al. MRM 68:1517-1526 (2012).
 %           https://doi.org/10.1002/mrm.24158.
 %
-% J. Kent. 2023. Using B.Hargreaves EPG and Bloch Functions.
+% J. Kent. 2023.
 %
 % Sequence Function
 

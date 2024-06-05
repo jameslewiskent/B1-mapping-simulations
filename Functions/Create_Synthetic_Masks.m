@@ -35,5 +35,6 @@ Body_T1s(Body_T1s < 0.5 & Body_T1s > 0) = 0.5;
 % Replace T1s in heart with specified values
 Body_T1s(Heart_Mask) = Heart_T1s(Heart_Mask);
 Synthetic_T1s = Body_T1s;
+
 end
 

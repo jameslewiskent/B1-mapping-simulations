@@ -5,13 +5,16 @@ function [results,settings] = run_and_plot(settings,plot_settings,results)
 % ---------------------------------------------------------------------- %
 % ----------- Following code handles simulation and plotting ----------- %
 % ---------------------------------------------------------------------- %
-settings.filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y-HH-mm'))];
-settings.savefilename = settings.filename; % In case of additional loop
 settings.Scheme = lower(settings.Scheme); % change all scheme names to lowercase to prevent capitalisation from re-running otherwise identical simulations
 
 if isempty(find(~isnan(settings.Noise), 1))
-plot_settings.Dynamic_Range_Axis = 0;
-warning('Dynamic range plot requested for data where no noise was simulated. The dynamic range calculated is not valid without noise present. Turning off dynamic range plotting.')
+    plot_settings.Dynamic_Range_Axis = 0;
+    warning('Dynamic range plot requested for data where no noise was simulated. The dynamic range calculated is not valid without noise present. Turning off dynamic range plotting.')
+end
+
+if ~isfield(settings,'LoopValues2')
+    settings.LoopFieldName2 = 'NaN'; 
+    settings.LoopValues2 = NaN;
 end
 
 if settings.UseSyntheticData == 0
@@ -53,20 +56,26 @@ if settings.UseSyntheticData == 0
         
         plot_SAR_fig(results,settings); % SAR Plot
         if settings(1,1).Calc_FWHM ~= 0
-        plot_FWHM(results,settings,plot_settings);
+            plot_FWHM(results,settings,plot_settings);
         end
     else
         
         if isfield(settings,'LoopValues') % Can add other loops here if you wish
-            for Additional_Loop_Counter = 1:length(settings.LoopValues)
+            for Additional_Loop_Counter = 1:size(settings.LoopValues,1)
                 settings.Additional_Loop_Counter = Additional_Loop_Counter;
-                [results,settings] = run_sequence_simulations(settings,results,plot_settings); % Simulate and process data
+                
+                for Additional_Loop_Counter2 = 1:size(settings.LoopValues2,1)
+                    settings.Additional_Loop_Counter2 = Additional_Loop_Counter2;
+                    
+                    disp(['Innerloop: ',num2str(Additional_Loop_Counter),', Outerloop: ',num2str(Additional_Loop_Counter2)])
+                    [results,settings] = run_sequence_simulations(settings,results,plot_settings); % Simulate and process data
+                end
             end
         else
             [results,settings] = run_sequence_simulations(settings,results,plot_settings); % Simulate and process data
         end
         if isfield(results,'Dynamic_Range')
-        disp(['Dynamic Range: ',num2str(results.Dynamic_Range,'%4.1f')]);
+            disp(['Dynamic Range: ',num2str(results.Dynamic_Range,'%4.1f')]);
         end
         
         if settings.HR_TR == 1
@@ -74,7 +83,7 @@ if settings.UseSyntheticData == 0
             nexttile();
             histogram(results.seq_TRs.*1e3,100)
             xlim([0 max(results.seq_TRs.*1e3,[],'all')])
-            xticks([0:250:max(results.seq_TRs.*1e3,[],'all')])
+            xticks(0:250:max(results.seq_TRs.*1e3,[],'all'))
             xlabel('TR [ms]'); ylabel('Frequency');
             title('HRV Histogram')
             hold on;
@@ -96,7 +105,7 @@ if settings.UseSyntheticData == 0
         figure('color','w','Name','RF Pulse Plot'); plot_rf_pulses(settings)
         
         if settings.Calc_FWHM ~= 0
-        plot_FWHM(results,settings,plot_settings);
+            plot_FWHM(results,settings,plot_settings);
         end
     end
 else
@@ -104,52 +113,64 @@ else
     % -----------             Simulating Synthetic Data          ----------- %
     % ---------------------------------------------------------------------- %
     
-    SyntheticDuke = load('Data\SyntheticDuke.mat'); % Reads in if current folder is Masterscript    
+    SyntheticDuke = load(['Data',filesep,'SyntheticDuke.mat']); % Reads in if current folder is Masterscript
     [settings.Body_Mask, settings.Heart_Mask, settings.Synthetic_T1s] = Create_Synthetic_Masks(SyntheticDuke,settings.Syn_Slice,settings);
+    
+    % [settings] = Choose_Mag_Track_Locations(settings)
     
     % Choose to use whole body or heart
     if settings.Whole_body_mask == 0
-    settings.Synthetic_Mask = settings.Heart_Mask;
+        settings.Synthetic_Mask = settings.Heart_Mask;
     elseif settings.Whole_body_mask == 1
-    settings.Synthetic_Mask = settings.Body_Mask;
+        settings.Synthetic_Mask = settings.Body_Mask;
     end
     
     if settings.verbose == 1
-       figure('color','w'); tiledlayout('flow','Tilespacing','none','Padding','none'); nexttile;
-       imagesc(settings.Synthetic_T1s)
-       set(gca,'Ydir','normal')
-       colormap(jet)
-       axis image off
-       cb = colorbar;
-       cb.Label.String = 'T_1 [s]';
+        figure('color','w'); tiledlayout('flow','Tilespacing','none','Padding','none'); nexttile;
+        imagesc(settings.Synthetic_T1s)
+        set(gca,'Ydir','normal')
+        colormap(jet)
+        axis image off
+        cb = colorbar;
+        cb.Label.String = 'T_1 [s]';
     end
     
     settings.Long_Synthetic_T1s = reshape(settings.Synthetic_T1s,[],1);
     settings.Long_Synthetic_Mask = reshape(settings.Synthetic_Mask,[],1);
     %B1Rx = squeeze(SyntheticDuke.B1Rx(:,:,settings.Syn_Slice,:)); % Receive field 139 x 178 x 124 slices x 8 channels
     
+    mz_h = figure('color','w','Name','Magnetisation Plot'); tiledlayout(mz_h,'flow','tilespacing','compact','padding','none');
+    tx_h = figure('color','w','Name','Magnetisation Plot'); tiledlayout(tx_h,'flow','tilespacing','compact','padding','none');
     if isfield(settings,'LoopValues') % Can add other loops here if you wish
-            for Additional_Loop_Counter = 1:length(settings.LoopValues)
-                settings.Additional_Loop_Counter = Additional_Loop_Counter;
+        for Additional_Loop_Counter = 1:size(settings.LoopValues,1)
+            settings.Additional_Loop_Counter = Additional_Loop_Counter;
+            
+            for Additional_Loop_Counter2 = 1:size(settings.LoopValues2,1)
+                settings.Additional_Loop_Counter2 = Additional_Loop_Counter2;
+                
+                disp(['Innerloop: ',num2str(Additional_Loop_Counter),', Outerloop: ',num2str(Additional_Loop_Counter2)])
                 [results,settings] = run_sequence_simulations(settings,results,plot_settings); % Simulate and process data
-                figure('color','w','Name','Magnetisation Plot'); plot_mz(results,settings); % magnetisation plot
+                
+                figure(mz_h); nexttile; plot_mz(results,settings); % magnetisation plot
+                figure(tx_h); nexttile; plot_tx(results,settings); % transmit field plot
             end
-            plot_Additional_Loop_fig(results,settings,plot_settings)
+        end
+        plot_Additional_Loop_fig(results,settings,plot_settings)
     else
-    % Function below handles simulating EPG image train and does analysis
-    [results] = run_sequence_simulations(settings,results,plot_settings);
-    
-    % Plot image maps
-    Noise_n = 2;
-    figure('color','w');
-    imagesc(imtile(abs(results.Image_Maps(:,:,:,1,1,1,1,1,Noise_n,1)),'Gridsize',[1 settings.Modes])) % Plot B1Tx FA maps for each mode
-    set(gca,'Ydir','normal')
-    axis image
-    set(gca,'YTick',[]); set(gca,'XTick',[]);
-    colormap(turbo)
-    colorbar
-    
-    figure('color','w','Name','Magnetisation Plot'); plot_mz(results,settings); % magnetisation plot
+        % Function below handles simulating EPG image train and does analysis
+        [results] = run_sequence_simulations(settings,results,plot_settings);
+        
+        % Plot image maps
+        Noise_n = 2;
+        figure('color','w');
+        imagesc(imtile(abs(results.Image_Maps(:,:,:,1,1,1,1,1,Noise_n,1)),'Gridsize',[1 settings.Modes])) % Plot B1Tx FA maps for each mode
+        set(gca,'Ydir','normal')
+        axis image
+        set(gca,'YTick',[]); set(gca,'XTick',[]);
+        colormap(turbo)
+        colorbar
+        
+        figure('color','w','Name','Magnetisation Plot'); plot_mz(results,settings); % magnetisation plot
     end
 end
 end

@@ -1,8 +1,8 @@
-function [Train1,Cumulative_Time,N_imaging_RF,seq_TRs,Mag_Track]  = epg_gre(T1,IT_FAs,RF_Phase,Velocity,Angle,Diff_co,settings)
+function [Train1,Cumulative_Time,N_imaging_RF,Mag_Track]  = epg_gre(T1,IT_FAs,RF_Phase,Velocity,Angle,Diff_co,settings)
 % Function to simulate image trains for relative GRE mapping scheme
 % Controls looping structure over different flip angles, T1s etc.
 %
-% J. Kent. 2023. Using B.Hargreaves EPG and Bloch Functions.
+% J. Kent. 2023.
 
 % Sequence Function
 
@@ -14,8 +14,6 @@ Train1 = zeros(settings.Scan_Size(1),settings.Scan_Size(2),size(settings.Tx_FA_m
 Cumulative_Time = 0;
 N_imaging_RF = 0;
 RF_Spoil_Phase = 0; RF_Spoil_Phase_Incr = 0;
-
-seq_TRs = settings.TR.*ones(1,settings.Dummy_Scans+size(settings.Segment_Sizes,2)*settings.Scan_Size(2));
 
 %%% START OF SEQUENCE %%%
 
@@ -38,7 +36,7 @@ if settings.Coil_Cycle == 0
                     N_imaging_RF = N_imaging_RF +1;
                     RF_Spoil_Phase = RF_Spoil_Phase + RF_Spoil_Phase_Incr;	% Increment RF Spoiling Phase
                     RF_Spoil_Phase_Incr = RF_Spoil_Phase_Incr + settings.RF_Spoiling_Increment;	% Increment increment!
-                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(Mode_n,Slice_n),RF_Phase(Mode_n)+RF_Spoil_Phase,settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
+                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(settings.Coil_Cycle_Order(Mode_n),Slice_n),RF_Phase(settings.Coil_Cycle_Order(Mode_n))+RF_Spoil_Phase,settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
                     [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TR,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling (FpFmZ,T1,T2,RelaxTime,kg,Diff_co,Gon,noadd)
                     for i = 1:settings.train_spoils(settings.Segment_Sizes(Segment_n))
                         P = epg_grad(P); % spoiling
@@ -53,6 +51,12 @@ if settings.Coil_Cycle == 0
                     end
                 end
             end
+            
+            % Relaxation (if any) between channels
+            if settings.TR >= (settings.Scan_Size(1)*settings.IT_TR)
+                [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.TR - (settings.Scan_Size(1)*settings.IT_TR),settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling (FpFmZ,T1,T2,RelaxTime,kg,Diff_co,Gon,noadd)
+            end
+            
         end
     end
 elseif settings.Coil_Cycle == 1
@@ -103,11 +107,11 @@ if settings.Coil_Cycle == 0
                     N_imaging_RF = N_imaging_RF +1;
                     RF_Spoil_Phase = RF_Spoil_Phase + RF_Spoil_Phase_Incr;	% Increment RF Spoiling Phase
                     RF_Spoil_Phase_Incr = RF_Spoil_Phase_Incr + settings.RF_Spoiling_Increment;	% Increment increment!
-                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(Mode_n,Slice_n),RF_Phase(Mode_n)+RF_Spoil_Phase,settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
+                    [P,~,Mag_Track] = epg_rf(P,IT_FAs(settings.Coil_Cycle_Order(Mode_n),Slice_n),RF_Phase(settings.Coil_Cycle_Order(Mode_n))+RF_Spoil_Phase,settings.IT_RF_Time,Mag_Track,settings);  % Imaging RF
                     
                     [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.IT_TE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                     
-                    Train1(IT_n,Slice_n,Mode_n) = P(1,1).*exp(-1i*RF_Spoil_Phase); % Store Phase-Demodulated 'signal' F+0
+                    Train1(IT_n,Slice_n,settings.Coil_Cycle_Order(Mode_n)) = P(1,1).*exp(-1i*RF_Spoil_Phase); % Store Phase-Demodulated 'signal' F+0
                     
                     [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,IT_rTE,settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling
                     
@@ -121,6 +125,12 @@ if settings.Coil_Cycle == 0
                     Cumulative_Time = Cumulative_Time + settings.IT_TR;
                 end
             end
+            
+            % Relaxation (if any) between channels
+            if settings.TR >= (settings.Scan_Size(1)*settings.IT_TR)
+                [P,~,~,Mag_Track] = epg_grelax(P,T1,settings.T2,settings.TR - (settings.Scan_Size(1)*settings.IT_TR),settings.kg,Diff_co,0,0,Velocity,Angle,Mag_Track,settings); % relaxation no spoiling (FpFmZ,T1,T2,RelaxTime,kg,Diff_co,Gon,noadd)
+            end
+            
         end
     end
 elseif settings.Coil_Cycle == 1

@@ -8,7 +8,7 @@ function [Train1,Train2,Cumulative_Time,N_imaging_RF,N_prep_RF,Mag_Track] = epg_
 %       relaxation of the longitudinal magnesation. Can turn on optional
 %       saturation recovery module and alter the Delay Time (TD_SR).
 %
-% J. Kent. 2023. Using B.Hargreaves EPG and Bloch Functions.
+% J. Kent. 2023.
 %
 % Sequence Function
 

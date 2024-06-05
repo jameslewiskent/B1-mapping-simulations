@@ -10,7 +10,6 @@ settings.nom_FA = 5*pi/180; % Nominal Image Train Flip Angle in Radians
 settings.RF_Type = 'RECT';
 settings.RF_Time = 0.1e-3;
 settings.RF_TBP = 'NA';
-settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
 settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
 settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
@@ -20,10 +19,9 @@ settings.nom_FA = 5*(pi/180); % Nominal Image Train Flip Angle in Radians
 settings.RF_Type = 'wSINC';
 settings.RF_Time = 2e-3;
 settings.RF_TBP = 4;
-settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 end
 settings.N_TRs = 1; % N/A for GRE sequence as implemented
-settings.TR = 0; % No TR long for GRE sequence as implemented
+settings.TR = 0; % No TR long for coil-cycled GRE sequence as implemented (only channelwise)
 settings.IT_TE = 1.31e-3; % Image Train Echo Time (s)
 settings.IT_TR = 3.14e-3; % Image Train Repitition Time (s)
 settings.Dummy_RF = 100; % Add 'dummy' RF pulses prior to reference image train which help achieve steady-state
@@ -63,11 +61,6 @@ if settings.RF_Spoiling == 0
     disp('RF spoiling is turned off.')
     settings.RF_Spoiling_Increment = 0;
 end
-
-if settings.Coil_Cycle == 1 
-    disp('Coil cycling is turned on.');
-end
-
 
 end
 

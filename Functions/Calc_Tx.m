@@ -1,7 +1,7 @@
 function [Dynamic_Range,Tx_FA_map,Enc_Mat] = Calc_Tx(RF_Voltage,settings)
 % Based on nominal RF pulse voltage, now calculate FA for tx
 
-SyntheticDuke = load('Data\SyntheticDuke.mat'); % Reads in if current folder is Masterscript
+SyntheticDuke = load(['Data',filesep,'SyntheticDuke.mat']); % Reads in if current folder is Masterscript
 [Enc_Mat] = Calc_Enc_Mat(settings.Enc_Scheme,settings.Modes); % Calculate Encoding Matrix
 
 if settings.Modes == 1
@@ -23,15 +23,5 @@ else
     %save('Tx_Channel_FA_map.mat','Tx_Channel_FA_map');
 end
     Dynamic_Range = permute(squeeze(reshape(Tx_FA_map./(settings.nom_FA.*(180/pi)),[],1,settings.Modes)),[2 1]);
-
-    figure('color','w');
-    imagesc(imtile(abs(Tx_FA_map),'Gridsize',[1 settings.Modes])) % Plot B1Tx FA maps for each mode
-    set(gca,'Ydir','normal')
-    title('Transmit Modes')
-    axis image
-    set(gca,'YTick',[]); set(gca,'XTick',[]);
-    xlabel('Transmit Modes')
-    xticks(((1:settings.Modes)).*size(Tx_FA_map,2) - size(Tx_FA_map,2)/2);
-    xticklabels(1:settings.Modes);
 end
 

@@ -9,8 +9,9 @@ else
     Nominal_FA = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
 end
 
+[Dynamic_Range,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
+disp([settings.Scheme,' DR: ',num2str(Dynamic_Range),'. FA Values: ',num2str(Dynamic_Range_Values(1)),'-',num2str(Dynamic_Range_Values(2)),'.']);
 if plot_settings.Dynamic_Range_Axis == 1
-    [Dynamic_Range,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
     Dynamic_Range_Value = Dynamic_Range_Values(1);
     Axis_Values = Nominal_FA./Dynamic_Range_Values(1); % Rescale axis based on dynamic range
     x_max = x_maxDR;

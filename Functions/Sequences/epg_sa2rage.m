@@ -4,7 +4,7 @@ function [Train1,Train2,Cumulative_Time,N_imaging_RF1,N_imaging_RF2,N_prep_RF,Ma
 %
 %   INFO:
 %
-% J. Kent. 2023. Using B.Hargreaves EPG and Bloch Functions.
+% J. Kent. 2023.
 %
 % Sequence Function
 

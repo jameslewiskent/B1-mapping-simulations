@@ -9,8 +9,8 @@ else
     Nominal_FA = settings.Dynamic_Range.*settings.nomPP_FA*(180/pi);
 end
 
+[~,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
 if plot_settings.Dynamic_Range_Axis == 1
-    [~,Dynamic_Range_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
     Dynamic_Range_Value = Dynamic_Range_Values(1);
     Axis_Values = Nominal_FA./Dynamic_Range_Values(1); % Rescale axis based on dynamic range
     x_max = x_maxDR;
@@ -65,5 +65,10 @@ elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference ==
     ylabel(['[Measured - Nominal] FA, [',char(176),']']);
     xlim([0 x_maxFA]); ylim([-x_maxFA/2 x_maxFA/2]);
 end
+
+if plot_settings.Show_Dyn_Range == 1
+    rectangle('Position', [Dynamic_Range_Values(1)./Dynamic_Range_Value, -x_max, (Dynamic_Range_Values(2)./Dynamic_Range_Value)-(Dynamic_Range_Values(1)./Dynamic_Range_Value), 2.*x_max],'FaceColor', [0, 0.6, 0, 0.2], 'EdgeColor', [0, 0.6, 0, 0.2]);
+end
+
 end
 

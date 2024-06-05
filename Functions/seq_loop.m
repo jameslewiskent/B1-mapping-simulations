@@ -36,7 +36,7 @@ for Dynamic_Range_n = 1:size(settings.Dynamic_Range,2)
     % If synthetic data is being used then don't bother simulating values not in the mask
     if settings.UseSyntheticData == 0 || (settings.UseSyntheticData == 1 && settings.Long_Synthetic_Mask(Dynamic_Range_n))
         for T1_n = 1:length(settings.T1s)
-            if settings.UseSyntheticData == 1
+            if settings.UseSyntheticData == 1 && settings.Global_T1 ~= 1
                 T1 = settings.Long_Synthetic_T1s(Dynamic_Range_n);
             else
                 T1 = settings.T1s(T1_n);
@@ -48,12 +48,12 @@ for Dynamic_Range_n = 1:size(settings.Dynamic_Range,2)
                 end
                 
                 for Mode_n = 1:settings.Modes
-                    FAs(Mode_n,:) = Simulate_RF_Pulse(settings.Hz_per_Volt*abs(settings.Dynamic_Range(Mode_n,Dynamic_Range_n))*settings.RF_Pulse,settings.RF_Time,settings.B0_Range_Hz(B0_n)+settings.Slice_Shifts,T1,settings.T2,settings.Gamma); % Output FA in radians
+                    FAs(Mode_n,:) = Simulate_RF_Pulse(settings.Hz_per_Volt*abs(settings.Dynamic_Range(Mode_n,Dynamic_Range_n))*settings.RF_Pulse,settings.RF_Time,settings.B0_Range_Hz(B0_n),settings.Slice_Positions,T1,settings.T2,settings.Gamma); % Output FA in radians
                     if strcmpi(settings.Scheme,'SA2RAGE')
-                        FA2s(Mode_n,:) = Simulate_RF_Pulse(settings.Hz_per_Volt*abs(settings.Dynamic_Range(Mode_n,Dynamic_Range_n))*settings.RF_Pulse2,settings.RF_Time,settings.B0_Range_Hz(B0_n)+settings.Slice_Shifts,T1,settings.T2,settings.Gamma); % Output FA in radians
+                        FA2s(Mode_n,:) = Simulate_RF_Pulse(settings.Hz_per_Volt*abs(settings.Dynamic_Range(Mode_n,Dynamic_Range_n))*settings.RF_Pulse2,settings.RF_Time,settings.B0_Range_Hz(B0_n),settings.Slice_Positions,T1,settings.T2,settings.Gamma); % Output FA in radians
                     end
                     if strcmpi(settings.Scheme,'SA2RAGE') || strcmpi(settings.Scheme,'SatTFL') || strcmpi(settings.Scheme,'Sandwich') || strcmpi(settings.Scheme,'DREAM')
-                        PP_FAs(Mode_n,:) = Simulate_RF_Pulse(settings.Hz_per_Volt*abs(settings.Dynamic_Range(Mode_n,Dynamic_Range_n))*settings.PP_RF_Pulse,settings.PP_RF_Time,settings.B0_Range_Hz(B0_n)+settings.PP_Shifts,T1,settings.T2,settings.Gamma); % Output FA in radians
+                        PP_FAs(Mode_n,:) = Simulate_RF_Pulse(settings.Hz_per_Volt*abs(settings.Dynamic_Range(Mode_n,Dynamic_Range_n))*settings.PP_RF_Pulse,settings.PP_RF_Time,settings.B0_Range_Hz(B0_n),settings.Slice_Positions,T1,settings.T2,settings.Gamma); % Output FA in radians
                     end
                 end
                 if settings.UseSyntheticData == 1
@@ -119,7 +119,7 @@ for Dynamic_Range_n = 1:size(settings.Dynamic_Range,2)
                                 elseif strcmpi(settings.Scheme,'DREAM')
                                     [Train1(:,:,:,Compartment_n),Train2(:,:,:,Compartment_n),Cumulative_Time,N_imaging_RF,N_prep_RF,Mag_Track] = epg_dream(T1,FAs,PP_FAs,RF_Phase,Velocity,Angle,Diff_co,settings);
                                 elseif strcmpi(settings.Scheme,'GRE')
-                                    [Train1(:,:,:,Compartment_n),Cumulative_Time,N_imaging_RF,seq_TRs(:,Dynamic_Range_n,B0_n,T1_n,Repeat_n),Mag_Track] = epg_gre(T1,FAs,RF_Phase,Velocity,Angle,Diff_co,settings); % Simulate sequence
+                                    [Train1(:,:,:,Compartment_n),Cumulative_Time,N_imaging_RF,Mag_Track] = epg_gre(T1,FAs,RF_Phase,Velocity,Angle,Diff_co,settings); % Simulate sequence
                                 else
                                     error('ABORTED: Scheme not recognised, please input either ''SatTFL'', ''Sandwich'', ''DREAM'', ''AFI'', ''SA2RAGE'' OR ''ALL''.')
                                 end

@@ -1,6 +1,5 @@
 %
 %	Bloch simulator.
-%
 %	[mx,my,mz] = bloch(b1,gr,tp,t1,t2,df,dp,mode,mx,my,mz)
 %
 %	Bloch simulation of rotations due to B1, gradient and

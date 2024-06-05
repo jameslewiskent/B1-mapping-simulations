@@ -3,21 +3,23 @@ function [results,settings] = run_sequence_simulations(settings,results,plot_set
 % data in analysis_function_core.
 %
 % James Kent. 2023. Using B. Hargreaves EPG Functions.
+% TODO: put warnings/verbose info into seperate function instead of being
+% here (or in sequence settings)
+
+settings.filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y-HH-mm'))];
 
 settings.Scan_Size(1) = round(settings.PE1_Resolution*settings.PE1_Partial_Fourier*settings.Matrix_Size(1));
 settings.Scan_Size(2) = round(settings.PE2_Resolution*settings.PE2_Partial_Fourier*settings.Matrix_Size(2));
-settings = Calc_Slice_Shifts(settings); % Calculate Slice Shifts for MS sequences
+settings = Calc_Slice_Positions(settings); % Calculate Slice positions
 
 % Load sequence specific settings
 settings = load_sequence_settings(settings);
 
-
-if settings.UseSyntheticData == 1
-[settings.Dynamic_Range,settings.Tx_FA_map,settings.Enc_Mat] = Calc_Tx(max(settings.RF_Pulse),settings); % Now pulse voltages are known, we can calculate the associated transmit field
-disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.Tx_FA_map,3)),' Transmit Mode Configuration.']);
+if settings.UseSyntheticData == 0
+    settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
+elseif settings.UseSyntheticData == 1
+    settings.Mag_Track_Flags = 0;
 end
-
-settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 settings.filepath = fullfile('Data',lower(settings.Scheme));
 settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
 
@@ -30,17 +32,17 @@ elseif settings.UseSyntheticData == 1 && settings.Modes > 8  && strcmp(settings.
 end
 
 if settings.UseSyntheticData == 1
-   settings.Mag_Track_FAValues = 1; 
+    settings.Mag_Track_FAValues = 1;
 end
 
 if settings.UseSyntheticData == 1 && settings.Modes == 1 && ~strcmp(settings.Enc_Scheme,'CP')
-    disp('For Modes = 1 encoding scheme is fixed as CP. Setting settings.Enc_Scheme = "CP"') 
-    settings.Enc_Scheme = 'CP';     
+    disp('For Modes = 1 encoding scheme is fixed as CP. Setting settings.Enc_Scheme = "CP"')
+    settings.Enc_Scheme = 'CP';
 end
 
 if settings.UseSyntheticData == 1 && settings.Repeats > 1
     disp('Setting repeats to 1.')
-   settings.Repeats = 1;
+    settings.Repeats = 1;
 end
 
 if ~any(settings.B0_Range_Hz == 0)
@@ -56,7 +58,7 @@ end
 
 if length(settings.Velocities) ~= length(settings.Angles)
     disp('Velocities and Angles settings must have same number of entries')
-   settings.Angles = repmat(settings.Angles(1),1,length(settings.Velocities));
+    settings.Angles = repmat(settings.Angles(1),1,length(settings.Velocities));
 end
 
 if ~any(settings.Diff_coeffs == 0)
@@ -82,7 +84,7 @@ if settings.HR_TR == 1 && settings.Use_Previous_Lookup == 0
     settings.Use_Previous_Lookup = 1;
 end
 
-if isfield(settings,'Additional_Loop_Counter') && settings.Use_Previous_Lookup == 0
+if isfield(settings,'Additional_Loop_Counter') && settings.Use_Previous_Lookup == 0 && (strcmpi(settings.Scheme,'Sandwich') || strcmpi(settings.Scheme,'SA2RAGE'))
     %disp('Additional loop counter is on, but Use_Previous_Lookup is false. Switching Use_Previous_Lookup to true.')
     %settings.Use_Previous_Lookup = 1;
     warning('Additional loop counter is on, but Use_Previous_Lookup is false.')
@@ -97,19 +99,82 @@ end
 if isfield(settings,'LoopValues') && isfield(settings,'Additional_Loop_Counter')
     settings.(settings.LoopFieldName) = settings.LoopValues(settings.Additional_Loop_Counter,:);
 end
+if isfield(settings,'LoopValues2') && isfield(settings,'Additional_Loop_Counter2')
+    settings.(settings.LoopFieldName2) = settings.LoopValues2(settings.Additional_Loop_Counter2,:);
+end
+
+if settings.Global_T1 == 1
+    % Overwrite synthetic T1s with a single global value
+    disp('Fixed global T1 value.');
+end
+
+if strcmpi(settings.Scheme,'GRE') && ~strcmpi(settings.LoopFieldName2,'Coil_Cycle_Order')
+    if settings.Coil_Cycle == 0
+        settings.Coil_Cycle_Order = 1:8;
+    elseif settings.Coil_Cycle == 1
+        settings.Coil_Cycle_Order = [1,4,7,2,5,8,3,6];
+    end
+end
+
+if isfield(settings,'Coil_Cycle') && isfield(settings,'Coil_Cycle_Order')
+    if settings.Coil_Cycle == 1
+        disp(['Coil cycling is turned on. Coil-order: ',num2str(settings.Coil_Cycle_Order)]);
+    else
+        disp(['Coil cycling is turned off. Coil-order: ',num2str(settings.Coil_Cycle_Order)]);
+    end
+end
+
+if strcmpi(settings.Scheme,'GRE')
+    % Must get RF pulse after additional loop counters, incase e.g. FA etc. is changed
+    % TODO: Need to update this for other sequences too
+    settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
+end
+
+if settings.UseSyntheticData == 1
+    [settings.Dynamic_Range,settings.Tx_FA_map,settings.Enc_Mat] = Calc_Tx(max(settings.RF_Pulse),settings); % Now pulse voltages are known, we can calculate the associated transmit field
+    disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.Tx_FA_map,3)),' Transmit Mode Configuration.']);
+end
 
 % Calculate slice ordering
 settings = Calc_Slice_Order(settings);
 
 % Check if simulations already ran
-[already_ran,settings.savefilename] = check_if_already_ran(settings);
+[already_ran,settings.filename] = check_if_already_ran(settings);
 
 if already_ran % Don't re-simulate if input parameters unchanged
     disp('Input parameters unchanged - results not re-simulated.')
-    load(fullfile(settings.filepath,settings.savefilename),'results','settings')
+    
+%     % Create temporary store of loop settings before loading previous
+%     % dataset (as this will overwrite some settings)
+%     if isfield(settings,'LoopFieldName')
+%         temp_settings.LoopFieldName = settings.LoopFieldName;
+%         temp_settings.LoopValues = settings.LoopValues;
+%         temp_settings.Additional_Loop_Counter = settings.Additional_Loop_Counter;
+%     end
+%     if isfield(settings,'LoopFieldName2')
+%         temp_settings.LoopFieldName2 = settings.LoopFieldName2;
+%         temp_settings.LoopValues2 = settings.LoopValues2;
+%         temp_settings.Additional_Loop_Counter2 = settings.Additional_Loop_Counter2;
+%     end
+    
+    load(fullfile(settings.filepath,settings.filename),'results')
+    
+%     % Now put temporary stored fields input back into loaded settings
+%     if isfield(temp_settings,'LoopFieldName')
+%         settings.LoopFieldName = temp_settings.LoopFieldName;
+%         settings.LoopValues = temp_settings.LoopValues;
+%         settings.Additional_Loop_Counter = temp_settings.Additional_Loop_Counter;
+%     end
+%     if isfield(temp_settings,'LoopFieldName2')
+%         settings.LoopFieldName2 = temp_settings.LoopFieldName2;
+%         settings.LoopValues2 = temp_settings.LoopValues2;
+%         settings.Additional_Loop_Counter2 = temp_settings.Additional_Loop_Counter2;
+%     end
+%     clear temp_settings
+    
 else % Simulate sequence
     disp('Starting simulations.')
-    [simulation_results,settings] = seq_loop(settings); 
+    [simulation_results,settings] = seq_loop(settings);
     disp('Simulations successful!')
     
     % Process simulation results
@@ -122,11 +187,26 @@ else % Simulate sequence
         results.Dynamic_Range = Dynamic_Range;
         results.DR_Values = DR_Values;
     end
-    
-    if isfield(settings,'Additional_Loop_Counter')
-        settings.savefilename = [settings.filename,'_Loop',num2str(settings.Additional_Loop_Counter)];
+       
+    temp_settings = settings; % Create temporary store of settings before removing some fields
+    try
+        % Remove loop field name and values from saved settings because this is irrelevant and
+        % prevents additional loop information being overwritten in case
+        % previous results/settings are loaded in
+        settings = rmfield(settings,'LoopFieldName');
+        settings = rmfield(settings,'LoopValues');
+        settings = rmfield(settings,'Additional_Loop_Counter');
     end
-    save(fullfile(settings.filepath,[settings.savefilename,'.mat']),'results','settings')
+    try
+        % Also remove loop field name and values because this is irrelevant
+        settings = rmfield(settings,'LoopFieldName2');
+        settings = rmfield(settings,'LoopValues2');
+        settings = rmfield(settings,'Additional_Loop_Counter2');
+    end
+    
+    % Save results
+    save(fullfile(settings.filepath,[settings.filename,'.mat']),'results','settings')
+    settings = temp_settings; % Restore removed fields
 end
 
 % Display some energy statistics

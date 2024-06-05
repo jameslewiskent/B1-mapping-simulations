@@ -25,9 +25,13 @@ if any(Mag_Track_DRValues == Dynamic_Range_n) && any(settings.Mag_Track_T1Values
     %disp('Tracking Magnetisation')
 elseif settings.UseSyntheticData == 1
     % Convert given index to value in long array
-    Mag_Track_Long_SynInd = sub2ind([139,178],settings.Mag_Track_SynInd(1),settings.Mag_Track_SynInd(2));
-    if Dynamic_Range_n == Mag_Track_Long_SynInd
-        settings.Mag_Track_Flags = 1;
+    for Flag_n = 1:size(settings.Mag_Track_SynInd,1)
+        Mag_Track_Long_SynInd(Flag_n) = sub2ind([139,178],settings.Mag_Track_SynInd(Flag_n,1),settings.Mag_Track_SynInd(Flag_n,2));
+        if Dynamic_Range_n == Mag_Track_Long_SynInd(Flag_n)
+            settings.Mag_Track_Flags(Flag_n) = 1;
+        else
+            settings.Mag_Track_Flags(Flag_n) = 0;
+        end
     end
 else
     settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));

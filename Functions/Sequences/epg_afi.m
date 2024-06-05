@@ -13,7 +13,7 @@ function [Train1,Train2,Cumulative_Time,N_imaging_RF,Mag_Track] = epg_afi(T1,FAs
 %       where n = TR2/TR1 and r is the ratio of the FID signals from TR1
 %       and TR2.
 %
-% J. Kent. 2023. Using B.Hargreaves EPG and Bloch Functions.
+% J. Kent. 2023.
 %
 % Sequence Function
 
