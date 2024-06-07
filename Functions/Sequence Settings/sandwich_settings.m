@@ -12,8 +12,6 @@ settings.RF_Time = 0.1e-3;
 settings.RF_TBP = 'NA';
 settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
-settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
-settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
 settings.Slice_Order_Type = 'Linear';
 
 settings.nomPP_FA = 90*pi/180; % Nominal Pre-pulse Flip Angle in Radians
@@ -34,10 +32,8 @@ settings.RF_Time = 2e-3;
 settings.RF_TBP = 4;
 settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
-settings.PP_Shifts = settings.Slice_Shifts;
 settings.Slice_Order_Type = 'OddThenEven';
 
-settings.PP_Shifts = settings.Slice_Shifts;
 settings.nomPP_FA = 90*(pi/180); % Nominal Pre-pulse Flip Angle in Radians
 settings.PP_RF_Type = 'SINC';
 settings.PP_RF_Time = 5e-3; % Time for Preparation RF pulse
@@ -59,9 +55,6 @@ settings.PE1_Reordering = 'CentricInOut'; % Reordering of phase encodes, 'Centri
 settings.PE2_Reordering = 'LinearUp'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 
 settings.perform_relative_mapping = 0; % Simulate relative mapping prior to absolute maps7
-settings.N_TRs = (settings.Dummy_Scans + settings.Segment_Factor*settings.Scan_Size(2))*settings.Modes;
-settings.prep_spoils = 1.* ones(1,settings.N_TRs); % Number of unit gradients to move through after pre-pulse (spoiling- need enough for optional dummy scans too)
-settings.train_spoils = 1.* ones(1,ceil(settings.Scan_Size(1)/settings.Segment_Factor));
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
 settings.man_spoil = 1; % Sets transverse magnetisation to 0 (if =1) assumes 'perfect' spoiling - useful for debugging
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
@@ -70,19 +63,6 @@ settings.HR_SD = 0.1; % Standard deviation in variable heartrate TR
 settings.HR_minTR = 0.7; % Minimum TR when 'gating'. Will skip to the next TR if below this limit leading to a longer TR.
 settings.magtrack_flag = 1; % Set to 1 to prevent magnetisation tracking in sequence
 settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
-% Calculate number of phase encodes in each segment and check
-Train_Size_Tot = settings.Scan_Size(1);
-settings.Segment_Sizes = zeros(1,settings.Segment_Factor);
-for Seg_n = 1:settings.Segment_Factor
-    settings.Segment_Sizes(Seg_n)= ceil(Train_Size_Tot./(settings.Segment_Factor+1-Seg_n));
-    Train_Size_Tot =  settings.Scan_Size(1) - sum(settings.Segment_Sizes,'all');
-end
-
-if sum(settings.Segment_Sizes,'all') ~= settings.Scan_Size(1)
-    error('ERROR: epg_func: Number of phase encodes in segments does not equal size of train requested.')
-elseif settings.Segment_Factor ~= 1
-    disp(['Number of phase encodes in image train: ',num2str(settings.Scan_Size(1)),', per segment: ',num2str(settings.Segment_Sizes)]);
-end
 
 % Notifications to user
 if settings.HR_TR == 1

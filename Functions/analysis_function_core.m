@@ -1,6 +1,7 @@
 function [results] = analysis_function_core(simulation_results, settings,results)
 % Function handles the actually analysis i.e. Reordering, zero-filling,
 % generating synthetic noise, Fourier transform, calculating alpha.
+disp('Starting analysis.')
 
 [results.Max_Val_IT1,FWHM1] = Process_IT(settings,simulation_results.IT1,1);
 if isfield(simulation_results,'IT2')
@@ -57,5 +58,8 @@ end
 if isfield(simulation_results,'N_imaging_RF2')
     results.N_imaging_RF2 = simulation_results.N_imaging_RF2;
 end
+
+disp('Analysis finished.')
+
 end
 

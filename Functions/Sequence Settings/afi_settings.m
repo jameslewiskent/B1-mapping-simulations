@@ -12,8 +12,6 @@ settings.RF_Time = 0.5e-3;
 settings.RF_TBP = 'NA';
 settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
-settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
-settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
 settings.Slice_Order_Type = 'Linear';
 
 elseif strcmp(settings.MSor3D,'2D')
@@ -33,7 +31,7 @@ settings.man_spoil = 0; % Sets transverse magnetisation to 0 (if =1) assumes 'pe
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
 settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
 
-settings.Segment_Sizes = settings.Scan_Size(1); % No segmentation for AFI
+settings.Segment_Factor = 1; % No segmentation for AFI
 
 if settings.RF_Spoiling == 0
     disp('RF spoiling is turned off.')

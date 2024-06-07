@@ -13,8 +13,6 @@ settings.RF_Time = 0.2e-3;
 settings.RF_TBP = 'NA'; % Asymetric windowed sinc pulse
 settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
-settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
-settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
 settings.Slice_Order_Type = 'CentreOut';
 
 settings.nomPP_FA = 60*pi/180; % Nominal Pre-pulse Flip Angle in Radians
@@ -39,7 +37,6 @@ settings.RF_Time = 0.7e-3;
 settings.RF_TBP = 3; % Asymetric windowed sinc pulse
 settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
-settings.PP_Shifts = settings.Slice_Shifts;
 settings.Slice_Order_Type = 'OddThenEven';
 
 settings.nomPP_FA = 40*pi/180; % Nominal Pre-pulse Flip Angle in Radians
@@ -63,7 +60,7 @@ settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This s
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
 settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
 
-settings.Segment_Sizes = settings.Scan_Size(1); % No segmentation for DREAM
+settings.Segment_Factor = 1; % No segmentation for DREAM
 
 if settings.UseSyntheticData == 0
     settings.RF_Phase = zeros(1,size(settings.Tx_FA_map,3)); % Otherwise it is set in the synthetic data loop
@@ -78,15 +75,5 @@ if settings.RF_Spoiling == 0
     settings.RF_Spoiling_Increment = 0;
 end
 
-% Need to calculate time between neihgbouring slices
-% Calculate slice ordering
-settings = Calc_Slice_Order(settings);
-Num_Slices_Between_Adjacent = find(settings.Slice_Order == 2) - find(settings.Slice_Order == 1) -1; % Find how many slices are between neighbouring slices
-if isempty(Num_Slices_Between_Adjacent)
-    Num_Slices_Between_Adjacent = 0;
-end
-Slice_Duration = (settings.Segment_Sizes(1)*settings.IT_TR + settings.Td); % Minimum duration of slice acquisition
-% Delay time split across all slices
-settings.Compulsory_Delay_Time = max(0,(settings.Neighbouring_Slice_Delay_Time - (Num_Slices_Between_Adjacent*Slice_Duration))/(Num_Slices_Between_Adjacent+1));
 end
 

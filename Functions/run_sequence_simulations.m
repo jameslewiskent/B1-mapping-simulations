@@ -6,21 +6,55 @@ function [results,settings] = run_sequence_simulations(settings,results,plot_set
 % TODO: put warnings/verbose info into seperate function instead of being
 % here (or in sequence settings)
 
-settings.filename = ['Results_',char(datetime('now','TimeZone','local','Format','d-MMM-y-HH-mm'))];
+settings.filepath = fullfile('Data',lower(settings.Scheme));
+settings = Create_Filename(settings); %Generate filename
+
+% Load sequence specific settings
+settings = load_sequence_settings(settings);
+
+% Optional - Overwrite sequence specific settings for additional looping of parameters
+% e.g. useful for testing different sequence TRs etc.
+if isfield(settings,'LoopValues') && isfield(settings,'Additional_Loop_Counter')
+    settings.(settings.LoopFieldName) = settings.LoopValues(settings.Additional_Loop_Counter,:);
+end
+if isfield(settings,'LoopValues2') && isfield(settings,'Additional_Loop_Counter2')
+    settings.(settings.LoopFieldName2) = settings.LoopValues2(settings.Additional_Loop_Counter2,:);
+end
 
 settings.Scan_Size(1) = round(settings.PE1_Resolution*settings.PE1_Partial_Fourier*settings.Matrix_Size(1));
 settings.Scan_Size(2) = round(settings.PE2_Resolution*settings.PE2_Partial_Fourier*settings.Matrix_Size(2));
 settings = Calc_Slice_Positions(settings); % Calculate Slice positions
 
-% Load sequence specific settings
-settings = load_sequence_settings(settings);
+if strcmpi(settings.MSor3D,'3D')
+    settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
+    settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
+elseif strcmpi(settings.MSor3D,'2D')
+    settings.PP_Shifts = settings.Slice_Shifts;
+end
+
+% Calculate number of TRs
+settings.N_TRs = (settings.Dummy_Scans + settings.Segment_Factor*settings.Scan_Size(2))*settings.Modes; % Sandwich & SA2RAGE
+if strcmpi(settings.Scheme,'SatTFL')
+    settings.N_TRs = 2*settings.N_TRs; % SatTFL
+end
+
+settings.prep_spoils = 1.* ones(1,settings.N_TRs); % Number of unit gradients to move through after pre-pulse (spoiling- need enough for optional dummy scans too)
+settings.train_spoils = 1.* ones(1,ceil(settings.Scan_Size(1)/settings.Segment_Factor));
+
+% Calculate segment sizes
+settings = Calc_Segment_Sizes(settings);
+
+if strcmpi(settings.Scheme,'DREAM')
+    settings = Calc_Slice_Delay_Time(settings); % Need to calculate time between neighbouring slices
+else
+    settings = Check_Min_TR(settings); % Check minimum TR time
+end
 
 if settings.UseSyntheticData == 0
     settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
 elseif settings.UseSyntheticData == 1
     settings.Mag_Track_Flags = 0;
 end
-settings.filepath = fullfile('Data',lower(settings.Scheme));
 settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
 
 if settings.UseSyntheticData == 1 && settings.Modes < 8  && strcmp(settings.Enc_Scheme,'Indiv')
@@ -94,15 +128,6 @@ if ~exist(settings.filepath,'dir')
     mkdir(settings.filepath);
 end
 
-% Optional - Overwrite sequence specific settings for additional looping of parameters
-% e.g. useful for testing different sequence TRs etc.
-if isfield(settings,'LoopValues') && isfield(settings,'Additional_Loop_Counter')
-    settings.(settings.LoopFieldName) = settings.LoopValues(settings.Additional_Loop_Counter,:);
-end
-if isfield(settings,'LoopValues2') && isfield(settings,'Additional_Loop_Counter2')
-    settings.(settings.LoopFieldName2) = settings.LoopValues2(settings.Additional_Loop_Counter2,:);
-end
-
 if settings.Global_T1 == 1
     % Overwrite synthetic T1s with a single global value
     disp('Fixed global T1 value.');
@@ -143,51 +168,20 @@ settings = Calc_Slice_Order(settings);
 
 if already_ran % Don't re-simulate if input parameters unchanged
     disp('Input parameters unchanged - results not re-simulated.')
-    
-%     % Create temporary store of loop settings before loading previous
-%     % dataset (as this will overwrite some settings)
-%     if isfield(settings,'LoopFieldName')
-%         temp_settings.LoopFieldName = settings.LoopFieldName;
-%         temp_settings.LoopValues = settings.LoopValues;
-%         temp_settings.Additional_Loop_Counter = settings.Additional_Loop_Counter;
-%     end
-%     if isfield(settings,'LoopFieldName2')
-%         temp_settings.LoopFieldName2 = settings.LoopFieldName2;
-%         temp_settings.LoopValues2 = settings.LoopValues2;
-%         temp_settings.Additional_Loop_Counter2 = settings.Additional_Loop_Counter2;
-%     end
-    
     load(fullfile(settings.filepath,settings.filename),'results')
     
-%     % Now put temporary stored fields input back into loaded settings
-%     if isfield(temp_settings,'LoopFieldName')
-%         settings.LoopFieldName = temp_settings.LoopFieldName;
-%         settings.LoopValues = temp_settings.LoopValues;
-%         settings.Additional_Loop_Counter = temp_settings.Additional_Loop_Counter;
-%     end
-%     if isfield(temp_settings,'LoopFieldName2')
-%         settings.LoopFieldName2 = temp_settings.LoopFieldName2;
-%         settings.LoopValues2 = temp_settings.LoopValues2;
-%         settings.Additional_Loop_Counter2 = temp_settings.Additional_Loop_Counter2;
-%     end
-%     clear temp_settings
-    
 else % Simulate sequence
-    disp('Starting simulations.')
     [simulation_results,settings] = seq_loop(settings);
-    disp('Simulations successful!')
     
     % Process simulation results
-    disp('Starting analysis.')
     [results] = analysis_function_core(simulation_results, settings,results);
-    disp('Analysis finished.')
     
     if length(settings.Dynamic_Range) > 100 && settings.UseSyntheticData == 0
         [Dynamic_Range,DR_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
         results.Dynamic_Range = Dynamic_Range;
         results.DR_Values = DR_Values;
     end
-       
+    
     temp_settings = settings; % Create temporary store of settings before removing some fields
     try
         % Remove loop field name and values from saved settings because this is irrelevant and

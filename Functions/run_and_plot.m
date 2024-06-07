@@ -113,8 +113,7 @@ else
     % -----------             Simulating Synthetic Data          ----------- %
     % ---------------------------------------------------------------------- %
     
-    SyntheticDuke = load(['Data',filesep,'SyntheticDuke.mat']); % Reads in if current folder is Masterscript
-    [settings.Body_Mask, settings.Heart_Mask, settings.Synthetic_T1s] = Create_Synthetic_Masks(SyntheticDuke,settings.Syn_Slice,settings);
+    [settings.Body_Mask, settings.Heart_Mask, settings.Synthetic_T1s] = Create_Synthetic_Masks(settings.Syn_Slice,settings);
     
     % [settings] = Choose_Mag_Track_Locations(settings)
     
@@ -126,13 +125,24 @@ else
     end
     
     if settings.verbose == 1
+        % Plot synthetic T1 figure
         figure('color','w'); tiledlayout('flow','Tilespacing','none','Padding','none'); nexttile;
-        imagesc(settings.Synthetic_T1s)
+        imagesc(settings.Synthetic_T1s); hold on
         set(gca,'Ydir','normal')
         colormap(jet)
         axis image off
         cb = colorbar;
         cb.Label.String = 'T_1 [s]';
+        
+        if size(settings.Mag_Track_SynInd,1) > 1
+            % Plot positions of magnetisation tracking onto T1 figure
+            %cmap = hsv(size(settings.Mag_Track_SynInd,1));
+            cmap = repmat([1 0 0],size(settings.Mag_Track_SynInd,1),1);
+            for location_n = 1:size(settings.Mag_Track_SynInd,1) 
+                plot(settings.Mag_Track_SynInd(location_n,2),settings.Mag_Track_SynInd(location_n,1),'color',cmap(location_n,:),'Marker','x','MarkerSize',10,'LineWidth',3); hold on
+            end
+            hold off
+        end
     end
     
     settings.Long_Synthetic_T1s = reshape(settings.Synthetic_T1s,[],1);

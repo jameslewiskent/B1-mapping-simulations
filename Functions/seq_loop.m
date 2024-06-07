@@ -1,5 +1,6 @@
 function [simulation_results,settings] = seq_loop(settings)
 % Control of loops through T1/TR/Ratio values etc.
+disp('Starting simulations.')
 
 %% Preallocate variables
 if settings.HR_TR == 1
@@ -175,7 +176,10 @@ simulation_results.N_prep_RF = N_prep_RF;
 simulation_results.Cumulative_Time = Cumulative_Time;
 simulation_results.Total_Energy = Total_Energy;
 if isfield(settings,'N_TRs')
-simulation_results.seq_TRs = seq_TRs;
+    simulation_results.seq_TRs = seq_TRs;
 end
 simulation_results.Average_10s_Power = Average_10s_Power;
+
+disp('Simulations successful!')
+
 end

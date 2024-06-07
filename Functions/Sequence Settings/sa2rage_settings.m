@@ -13,8 +13,6 @@ settings.RF_TBP = 'NA';
 settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 settings.RF_Pulse2 = Get_RF_Pulse(settings.nom_FA2,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 
-settings.Slice_Shifts = zeros(1,settings.Scan_Size(2));
-settings.PP_Shifts = zeros(1,settings.Scan_Size(2));
 settings.Slice_Order_Type = 'Linear';
 
 settings.nomPP_FA = 90*pi/180; % Nominal Saturation Flip Angle in Radians
@@ -36,25 +34,11 @@ settings.PE1_Reordering = 'CentricOut'; % Reordering of phase encodes, 'CentricO
 settings.PE2_Reordering = 'CentricOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 
 settings.perform_relative_mapping = 0; % Simulate relative mapping prior to absolute maps
-settings.prep_spoils = 1.* ones(1,settings.Dummy_Scans+settings.Segment_Factor*size(settings.Tx_FA_map,3)*settings.Scan_Size(2)+1); %2.^(0:(Dummy_Scans+Segment_Factor*size(Tx_FA_map,3))); % Number of unit gradients to move through after pre-pulse (spoiling- need enough for optional dummy scans too)
-settings.train_spoils = 1.* ones(1,ceil(settings.Scan_Size(1)/settings.Segment_Factor));
+
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
 settings.man_spoil = 0; % Sets transverse magnetisation to 0 (if =1) assumes 'perfect' spoiling - useful for debugging
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
 settings.Lookup_T1 = 1.5; % T1 chosen for lookup table (s)
-
-% Calculate number of phase encodes in each segment and check
-Train_Size_Tot = settings.Scan_Size(1);
-settings.Segment_Sizes = zeros(1,settings.Segment_Factor);
-for Seg_n = 1:settings.Segment_Factor
-    settings.Segment_Sizes(Seg_n)= ceil(Train_Size_Tot./(settings.Segment_Factor+1-Seg_n));
-    Train_Size_Tot =  settings.Scan_Size(1) - sum(settings.Segment_Sizes,'all');
-end
-if sum(settings.Segment_Sizes,'all') ~= settings.Scan_Size(1)
-    error('ERROR: epg_func: Number of phase encodes in segments does not equal size of train requested.')
-elseif settings.Segment_Factor ~= 1
-    disp(['Number of phase encodes in image train: ',num2str(settings.Scan_Size(1)),', per segment: ',num2str(settings.Segment_Sizes)]);
-end
 
 % Notificaitons to user
 if settings.RF_Spoiling == 0

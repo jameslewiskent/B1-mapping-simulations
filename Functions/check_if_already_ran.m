@@ -61,16 +61,18 @@ for n = 1:length(list)
         break
     else
         % Uncomment for debugging
-                % Find which field names don't match
+                %Find which field names don't match
 %                 list_fieldnames = fieldnames(settings);
 %                 for m = 1:length(list_fieldnames)
 %                     if ~iscell(settings.(char(list_fieldnames(m))))
 %                         if ~all(isequaln(settings.(char(list_fieldnames(m))),data.settings.(char(list_fieldnames(m)))),'all')
-%                             disp(['Field name which does not match is: "', char(list_fieldnames(m)),'"']);
+%                             disp(['Field name which does not match is: "', char(list_fieldnames(m)),'".']);
+%                             % disp(['Field name which does not match is: "', char(list_fieldnames(m)),'". Values are: ',num2str(settings.(char(list_fieldnames(m)))),' and ',num2str(data.settings.(char(list_fieldnames(m))))]);
 %                         end
 %                     end
 %                 end
-%                 disp('')
+%                 disp(' ')
+
     end
     
     

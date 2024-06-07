@@ -2,17 +2,23 @@ function [Dynamic_Range,Tx_FA_map,Enc_Mat] = Calc_Tx(RF_Voltage,settings)
 % Based on nominal RF pulse voltage, now calculate FA for tx
 
 SyntheticDuke = load(['Data',filesep,'SyntheticDuke.mat']); % Reads in if current folder is Masterscript
+
+% Centre body in FOV
+B1Tx = circshift(SyntheticDuke.B1Tx,15,1); % Transmit field 139 x 178 x 124 slices x 8 channels
+B1Rx = circshift(SyntheticDuke.B1Rx,15,1);
+PDimage = circshift(SyntheticDuke.PDimage,15,1);
+mask = circshift(SyntheticDuke.mask,15,1);
+rho = circshift(SyntheticDuke.rho,15,1);
+sigma = circshift(SyntheticDuke.sigma,15,1);
+clear SyntheticDuke
+
 [Enc_Mat] = Calc_Enc_Mat(settings.Enc_Scheme,settings.Modes); % Calculate Encoding Matrix
 
 if settings.Modes == 1
-    % Set up B1 Tx Field
-    B1Tx = SyntheticDuke.B1Tx; % Transmit field 139 x 178 x 124 slices x 8 channels
     %B1Tx_sumv = sum(bsxfun(@times,B1Tx(:,:,settings.Syn_Slice,:),exp(1i*angle(conj(B1Tx(76,100,settings.Syn_Slice,:))))),4); % Aligned fields to give max B1 field in centre of heart voxel (i=73,j=97) 53 103
     B1Tx_CP = sum(bsxfun(@times,B1Tx(:,:,settings.Syn_Slice,:),permute(Enc_Mat,[1,3,4,2])),4).*RF_Voltage/sqrt(50); % B1Tx in (T/V)
     Tx_FA_map = B1Tx_CP.*settings.Gamma.*1e-3.*360; % Convert B1 map to FA (degrees) (this is complex)
 else
-    % Set up B1 Tx Field
-    B1Tx = SyntheticDuke.B1Tx; % 139 x 178 x 124 slices x 8 channels
     B1Tx_modes = zeros(size(B1Tx,1),size(B1Tx,2),settings.Modes); Tx_FA_map = zeros(size(B1Tx_modes));
     for mode = 1:settings.Modes
         B1Tx_modes(:,:,mode) = sum(bsxfun(@times,B1Tx(:,:,settings.Syn_Slice,:),permute(Enc_Mat(mode,:),[1,3,4,2])),4).*RF_Voltage/sqrt(50); % Sum of channels for Slice in (T)

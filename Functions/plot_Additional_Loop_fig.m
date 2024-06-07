@@ -83,11 +83,13 @@ if strcmp(settings.LoopFieldName,'Ejection_Fraction')
     xlabel(['Nominal FA, [',char(176),']']);
     xlim([0 200]);
     axis square
+    set(gca,'Ydir','normal')
     colormap(bluewhitered)
     cb = colorbar; cb.Label.String = 'Percent Error, [%]';
     xline(lower_bound,'linewidth',2,'linestyle','--');
     xline(upper_bound,'linewidth',2,'linestyle','--');
     title('a) Mean T1');
+    
     
     Mean_Diff_FAs = 100.*squeeze(mean(Diff_FAs(:,lower_bound:upper_bound,:),2));
     nexttile();
@@ -96,13 +98,14 @@ if strcmp(settings.LoopFieldName,'Ejection_Fraction')
     ylabel('Ejection Fraction, [%]');
     xlabel('T_1, [s]');
     axis square
+    set(gca,'Ydir','normal')
     colormap(bluewhitered)
     cb = colorbar; cb.Label.String = 'Percent Error, [%]';
     title('b) Mean DR');
 end
 
 if strcmp(settings.LoopFieldName,'Coil_Cycle')
-
+    
     for Additional_Loop_Counter = 1:size(settings.LoopValues,1)
         for Additional_Loop_Counter2 = 1:size(settings.LoopValues2,1)
             settings.(settings.LoopFieldName) = settings.LoopValues(Additional_Loop_Counter,:);
@@ -116,11 +119,16 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
                 end
             end
             
-            if strcmpi(settings.Scheme,'GRE')
-                % This is here incase FA is changed, as RF pulse will need
-                % updating too
-                settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
-            end
+            % This is here incase FA is changed, as RF pulse will need updating too
+            settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
+            
+            % If Matrix size changed, these needs updating
+            settings.Scan_Size(1) = round(settings.PE1_Resolution*settings.PE1_Partial_Fourier*settings.Matrix_Size(1));
+            settings.Scan_Size(2) = round(settings.PE2_Resolution*settings.PE2_Partial_Fourier*settings.Matrix_Size(2));
+            settings = Calc_Slice_Positions(settings); % Calculate Slice positions
+            settings = Calc_Segment_Sizes(settings);
+            settings.prep_spoils = 1.* ones(1,settings.N_TRs); % Number of unit gradients to move through after pre-pulse (spoiling- need enough for optional dummy scans too)
+            settings.train_spoils = 1.* ones(1,ceil(settings.Scan_Size(1)/settings.Segment_Factor));
             
             if settings.UseSyntheticData == 1
                 [settings.Dynamic_Range,settings.Tx_FA_map,settings.Enc_Mat] = Calc_Tx(max(settings.RF_Pulse),settings); % Now pulse voltages are known, we can calculate the associated transmit field
@@ -141,6 +149,18 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
         end
     end
     
+    % Check whether maps both have values in same voxels
+    x = GT_Rel_Image_Maps;
+    x(x ~= 0) = 1;
+    x = ~any(~x,3:ndims(x)); % Must check extra dimensions for simulated maps, then collapse
+    y = Rel_Image_Maps;
+    y(y ~= 0) = 1;
+    y = ~any(~y,3:ndims(y)); % Must check extra dimensions for simulated maps, then collapse
+    diff_mask = logical(x-y);
+    % Set to NaN any voxels which aren't in both the ground truth and simulated maps
+    GT_Rel_Image_Maps(repmat(diff_mask,[1 1 size(GT_Rel_Image_Maps,3:ndims(GT_Rel_Image_Maps))])) = NaN;
+    Rel_Image_Maps(repmat(diff_mask,[1 1 size(Rel_Image_Maps,3:ndims(Rel_Image_Maps))])) = NaN;
+    
     % Create long arrays & remove NaNs
     for Tx_n = 1:8
         for Additional_Loop_Counter = 1:size(settings.LoopValues,1)
@@ -150,15 +170,15 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
                         for Flow_n = 1:length(settings.Velocities)
                             for Diff_n = 1:length(settings.Diff_coeffs)
                                 for Noise_n = 1:length(settings.Noise)
-                                    % Remove NaNs
+                                    % Remove NaNs from ground truth
                                     Masked_GT_Rel_Image_Maps = settings.Synthetic_Mask.*abs(GT_Rel_Image_Maps(:,:,Tx_n,Additional_Loop_Counter,Additional_Loop_Counter2));
                                     Masked_GT_Rel_Image_Maps(Masked_GT_Rel_Image_Maps == 0) = NaN;
                                     GT_Rel_Long_Maps(:,Tx_n,Additional_Loop_Counter,Additional_Loop_Counter2) = Masked_GT_Rel_Image_Maps(~isnan(Masked_GT_Rel_Image_Maps));
-                                    
+                                    % Remove NaNs from results
                                     Masked_Rel_Image_Maps = settings.Synthetic_Mask.*abs(Rel_Image_Maps(:,:,Tx_n,1,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Additional_Loop_Counter,Additional_Loop_Counter2));
                                     Masked_Rel_Image_Maps(Masked_Rel_Image_Maps == 0) = NaN;
                                     Rel_Long_Maps(:,Tx_n,1,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Additional_Loop_Counter,Additional_Loop_Counter2) = Masked_Rel_Image_Maps(~isnan(Masked_Rel_Image_Maps));
-                                    
+                                    % Calculate NRMSE
                                     NRMSE_Values(Tx_n,1,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Additional_Loop_Counter,Additional_Loop_Counter2) = rmse(Rel_Long_Maps(:,Tx_n,1,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Additional_Loop_Counter,Additional_Loop_Counter2),GT_Rel_Long_Maps(:,Tx_n,Additional_Loop_Counter,Additional_Loop_Counter2) ,'norm');
                                 end
                             end
@@ -182,8 +202,10 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
         for Additional_Loop_Counter2 = 1:size(settings.LoopValues2,1)
             nexttile;    imagesc(imtile(abs(Rel_Image_Maps(:,:,:,1,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Additional_Loop_Counter,Additional_Loop_Counter2)),'GridSize', [2 4]),[0 1])
             axis image off
+            set(gca,'YDir','normal');
         end
     end
+    set(gca,'YDir','normal');
     cb = colorbar;
     cb.Layout.Tile = 'East'; % <-- place legend east of tiles
     cb.Label.String = 'Relative B_1^+ [a.u.]';
@@ -198,6 +220,7 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
             data_to_plot(isnan(data_to_plot)) = 0;
             nexttile;    imagesc(imtile(data_to_plot,'GridSize', [2 4]),[-100 100])
             axis image off
+            set(gca,'YDir','normal');
         end
     end
     colormap(bluewhitered)
@@ -205,7 +228,7 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
     cb.Layout.Tile = 'East'; % <-- place legend east of tiles
     cb.Label.String = 'Relative Difference [%]';
     cb.FontSize = 16;
- 
+    
     if ~isfield(settings,'LoopFieldName2') || strcmp(settings.LoopFieldName2,'Coil_Cycle_Order')
         % Correlation plots
         xlimmin = 0; xlimmax = 1;
@@ -310,6 +333,26 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
         axis square
         ylabel('NRMSE, [%]')
         xlabel('T_1, [s]');
+    end
+    
+    if strcmp(settings.LoopFieldName2,'Matrix_Size')
+        figure('color','w','Units','Normalized','Position',[0.317057291666667,0.188888888888889,0.416276041666667,0.691898148148148])
+        cmap = jet(8); Markers = {'x','o'};
+        for Additional_Loop_Counter = 1:size(settings.LoopValues,1)
+            for Additional_Loop_Counter2 = 1:size(settings.LoopValues2,1)
+                for Tx_n = 1:8
+                    plot(settings.LoopValues2(Additional_Loop_Counter2),100.*NRMSE_Values(Tx_n,1,B0_n,T1_n,Flow_n,Diff_n,Noise_n,Additional_Loop_Counter,Additional_Loop_Counter2),'color',cmap(Tx_n,:),'Marker',Markers{Additional_Loop_Counter},'MarkerSize',10,'Linewidth',2,'HandleVisibility','off'); hold on
+                end
+            end
+        end
+        plot(-10,-10,'color','k','Marker',Markers{1},'LineStyle','none','MarkerSize',10,'Linewidth',2)
+        plot(-10,-10,'color','k','Marker',Markers{2},'LineStyle','none','MarkerSize',10,'Linewidth',2)
+        legend('Channel-wise','Coil-cycled','Location','NorthWest');
+        xlim([0 72]); ylim([0 100]);
+        grid on
+        axis square
+        ylabel('NRMSE, [%]')
+        xlabel('N_{PE}, [s]');
     end
     
     
