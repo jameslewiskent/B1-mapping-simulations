@@ -13,11 +13,11 @@ if isempty(find(~isnan(settings.Noise), 1))
 end
 
 if ~isfield(settings,'LoopValues2')
-    settings.LoopFieldName2 = 'NaN'; 
+    settings.LoopFieldName2 = 'NaN';
     settings.LoopValues2 = NaN;
 end
 
-if settings.UseSyntheticData == 0
+if ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     Schemes = {'sattfl','sandwich','sa2rage','afi','dream'};
     if strcmpi(settings.Scheme,'ALL')
         settings = repmat(settings,1,length(Schemes));
@@ -113,6 +113,12 @@ else
     % -----------             Simulating Synthetic Data          ----------- %
     % ---------------------------------------------------------------------- %
     
+    if strcmpi(settings.UseSyntheticData,'Duke')
+        settings.Mag_Track_SynInd = [107,40;49,25;26,59;23,103;31,143;65,157;110,139;119,75;97,89;77,92]; % Track magnetisation for voxels in Duke
+    elseif strcmpi(settings.UseSyntheticData,'Phantom')
+        settings.Mag_Track_SynInd = [16,16;16,32;16,48;32,16;32,32;32,48;48,16;48,32;48,48]; % Track magnetisation for voxels in Phantom
+    end
+    
     [settings.Body_Mask, settings.Heart_Mask, settings.Synthetic_T1s] = Create_Synthetic_Masks(settings.Syn_Slice,settings);
     
     % [settings] = Choose_Mag_Track_Locations(settings)
@@ -129,16 +135,16 @@ else
         figure('color','w'); tiledlayout('flow','Tilespacing','none','Padding','none'); nexttile;
         imagesc(settings.Synthetic_T1s); hold on
         set(gca,'Ydir','normal')
-        colormap(jet)
+        colormap(gray)
         axis image off
         cb = colorbar;
         cb.Label.String = 'T_1 [s]';
         
         if size(settings.Mag_Track_SynInd,1) > 1
             % Plot positions of magnetisation tracking onto T1 figure
-            %cmap = hsv(size(settings.Mag_Track_SynInd,1));
-            cmap = repmat([1 0 0],size(settings.Mag_Track_SynInd,1),1);
-            for location_n = 1:size(settings.Mag_Track_SynInd,1) 
+            cmap = jet(size(settings.Mag_Track_SynInd,1));
+            %cmap = repmat([1 0 0],size(settings.Mag_Track_SynInd,1),1);
+            for location_n = 1:size(settings.Mag_Track_SynInd,1)
                 plot(settings.Mag_Track_SynInd(location_n,2),settings.Mag_Track_SynInd(location_n,1),'color',cmap(location_n,:),'Marker','x','MarkerSize',10,'LineWidth',3); hold on
             end
             hold off
@@ -150,7 +156,10 @@ else
     %B1Rx = squeeze(SyntheticDuke.B1Rx(:,:,settings.Syn_Slice,:)); % Receive field 139 x 178 x 124 slices x 8 channels
     
     mz_h = figure('color','w','Name','Magnetisation Plot'); tiledlayout(mz_h,'flow','tilespacing','compact','padding','none');
-    tx_h = figure('color','w','Name','Magnetisation Plot'); tiledlayout(tx_h,'flow','tilespacing','compact','padding','none');
+    tx_h = figure('color','w'); tiledlayout(tx_h,'flow','tilespacing','compact','padding','none');
+    if settings.Modes > 1 && ~strcmpi(settings.Enc_Scheme,'Indiv')
+        tx2_h = figure('color','w'); tiledlayout(tx2_h,'flow','tilespacing','compact','padding','none');
+    end
     if isfield(settings,'LoopValues') % Can add other loops here if you wish
         for Additional_Loop_Counter = 1:size(settings.LoopValues,1)
             settings.Additional_Loop_Counter = Additional_Loop_Counter;
@@ -162,7 +171,10 @@ else
                 [results,settings] = run_sequence_simulations(settings,results,plot_settings); % Simulate and process data
                 
                 figure(mz_h); nexttile; plot_mz(results,settings); % magnetisation plot
-                figure(tx_h); nexttile; plot_tx(results,settings); % transmit field plot
+                figure(tx_h); nexttile; plot_tx(settings.Tx_FA_map,settings); % transmit field modes plot
+                if settings.Modes > 1 && ~strcmpi(settings.Enc_Scheme,'Indiv')
+                    figure(tx2_h); nexttile; plot_tx(settings.GT_Tx_FA_map,settings); % transmit field single-channel plot
+                end
             end
         end
         plot_Additional_Loop_fig(results,settings,plot_settings)

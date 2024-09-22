@@ -20,7 +20,9 @@
 function [FpFmZ,RR,Mag_Track] = epg_rf(FpFmZ,alpha,phi,RFTime,Mag_Track,settings)
 % -- From Weigel at al, JMR 205(2010)276-285, Eq. 8.
 
+if size(FpFmZ,2) > 10
 [FpFmZ] = epg_trim(FpFmZ,settings.EPG_trim_threshold);
+end
 
 if (abs(alpha)>2*pi)
     warning('epg_rf:  Flip angle should be in radians!'); 

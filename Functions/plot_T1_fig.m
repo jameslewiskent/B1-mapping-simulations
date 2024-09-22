@@ -1,7 +1,7 @@
 function plot_T1_fig(results,settings,plot_settings)
 % T1 plot
 x_maxDR = 10;
-x_maxFA = 180;
+x_maxFA = 200;
 
 if strcmpi(settings.Scheme,'AFI')
     Nominal_FA = settings.Dynamic_Range.*settings.nom_FA*(180/pi);
@@ -81,7 +81,7 @@ elseif plot_settings.Dynamic_Range_Axis == 1 && plot_settings.Plot_Difference ==
     ylabel('[Measured - Applied] Dynamic Range, [a.u.]');
     xlim([0 x_maxDR]); ylim([-1 1]);
 elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference == 0
-    xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:220)
+    xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:x_maxFA)
     ylabel(['Measured FA, [',char(176),']']);
     xlim([0 x_maxFA]); ylim([0 x_maxFA]);
     % Add dynamic range bar if there are sufficient repeats
@@ -93,7 +93,7 @@ elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference ==
         plot(Dynamic_Range_Values(2)*ones(1,10),linspace(8,12,10),'color','k','Linewidth',1,'handlevisibility','off')
     end
 elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference == 1
-    xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:220)
+    xlabel(['Nominal FA, [',char(176),']']); xticks(-20:20:x_maxFA)
     ylabel(['[Measured - Nominal] FA, [',char(176),']']);
     xlim([0 x_maxFA]); ylim([-x_maxFA/2 x_maxFA/2]);
     % Add dynamic range bar if there are sufficient repeats

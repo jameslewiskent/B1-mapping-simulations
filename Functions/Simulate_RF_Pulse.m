@@ -22,6 +22,5 @@ else
     end
 end
 
-
-Flip_Angle =  acos(mz) ; % Flip angle in radians
+Flip_Angle =  acos(mz); % Flip angle in radians
 end

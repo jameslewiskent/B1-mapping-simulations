@@ -107,7 +107,9 @@ mz = sum(epg_FZ2mz(FpFmZ),2);
 Mag_Track(:,end + 1) = [mz;Mag_Track(2,end) + T];
 end
 
+if size(FpFmZ,2) > 10
 [FpFmZ] = epg_trim(FpFmZ,settings.EPG_trim_threshold); % Trim states
+end
 end
 
 end

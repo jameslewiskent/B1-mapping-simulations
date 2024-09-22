@@ -22,8 +22,10 @@ try
 end
 
 try
-    % Also ignore magtrack flags
+    % Also ignore magtrack flags and temporal resolution of mag tracking as
+    % it doesn't affect simulation results
     settings = rmfield(settings,'Mag_Track_Flags');
+    settings = rmfield(settings,'Mag_Track_dt');
 end
 
 list = dir(settings.filepath);
@@ -32,6 +34,7 @@ list = list(contains({list.name},'Results')); % Remove non-Results
 
 already_ran = false;
 for n = 1:length(list)
+    %data = quickLoad(fullfile(settings.filepath,list(n).name),'settings');
     data = load(fullfile(settings.filepath,list(n).name),'settings');
     
     % remove filename from settings as this depends on when it is ran as it contains date and time
@@ -52,7 +55,10 @@ for n = 1:length(list)
     end
     
     try
+        % Also ignore magtrack flags and temporal resolution of mag tracking as
+        % it doesn't affect simulation results
         data.settings = rmfield(data.settings,'Mag_Track_Flags');
+        data.settings = rmfield(data.settings,'Mag_Track_dt');
     end
     
     if isequaln(settings,data.settings) % Is equal (treat nans as equal)
@@ -61,18 +67,18 @@ for n = 1:length(list)
         break
     else
         % Uncomment for debugging
-                %Find which field names don't match
-%                 list_fieldnames = fieldnames(settings);
-%                 for m = 1:length(list_fieldnames)
-%                     if ~iscell(settings.(char(list_fieldnames(m))))
-%                         if ~all(isequaln(settings.(char(list_fieldnames(m))),data.settings.(char(list_fieldnames(m)))),'all')
-%                             disp(['Field name which does not match is: "', char(list_fieldnames(m)),'".']);
-%                             % disp(['Field name which does not match is: "', char(list_fieldnames(m)),'". Values are: ',num2str(settings.(char(list_fieldnames(m)))),' and ',num2str(data.settings.(char(list_fieldnames(m))))]);
+%         %Find which field names don't match
+%                         list_fieldnames = fieldnames(settings);
+%                         for m = 1:length(list_fieldnames)
+%                             if ~iscell(settings.(char(list_fieldnames(m))))
+%                                 if ~all(isequaln(settings.(char(list_fieldnames(m))),data.settings.(char(list_fieldnames(m)))),'all')
+%                                     disp(['Field name which does not match is: "', char(list_fieldnames(m)),'".']);
+%                                     %disp(['Field name which does not match is: "', char(list_fieldnames(m)),'". Values are: ',num2str(settings.(char(list_fieldnames(m)))),' and ',num2str(data.settings.(char(list_fieldnames(m))))]);
+%                                 end
+%                             end
 %                         end
-%                     end
-%                 end
-%                 disp(' ')
-
+%                         disp(' ')
+                        
     end
     
     

@@ -7,7 +7,7 @@ function [results,settings] = run_sequence_simulations(settings,results,plot_set
 % here (or in sequence settings)
 
 settings.filepath = fullfile('Data',lower(settings.Scheme));
-settings = Create_Filename(settings); %Generate filename
+settings = Create_Filename(settings); % Generate filename
 
 % Load sequence specific settings
 settings = load_sequence_settings(settings);
@@ -50,31 +50,31 @@ else
     settings = Check_Min_TR(settings); % Check minimum TR time
 end
 
-if settings.UseSyntheticData == 0
+if ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     settings.Mag_Track_Flags = zeros(1,size(settings.Mag_Track_FAValues,2));
-elseif settings.UseSyntheticData == 1
+elseif (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     settings.Mag_Track_Flags = 0;
 end
 settings.lookup_filename = [settings.Scheme,'_lookup_table.mat'];
 
-if settings.UseSyntheticData == 1 && settings.Modes < 8  && strcmp(settings.Enc_Scheme,'Indiv')
+if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && settings.Modes < 8  && strcmp(settings.Enc_Scheme,'Indiv')
     disp('Multitransmit mapping is on, and encoding scheme is individual but the number of modes is less than the number of channels (8). Setting modes to 8.')
     settings.Modes = 8;
-elseif settings.UseSyntheticData == 1 && settings.Modes > 8  && strcmp(settings.Enc_Scheme,'Indiv')
+elseif (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && settings.Modes > 8  && strcmp(settings.Enc_Scheme,'Indiv')
     disp('Multitransmit mapping is on, and encoding scheme is individual but the number of modes is more than the number of channels (8). Setting modes to 8.')
     settings.Modes = 8;
 end
 
-if settings.UseSyntheticData == 1
+if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     settings.Mag_Track_FAValues = 1;
 end
 
-if settings.UseSyntheticData == 1 && settings.Modes == 1 && ~strcmp(settings.Enc_Scheme,'CP')
+if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && settings.Modes == 1 && ~strcmp(settings.Enc_Scheme,'CP')
     disp('For Modes = 1 encoding scheme is fixed as CP. Setting settings.Enc_Scheme = "CP"')
     settings.Enc_Scheme = 'CP';
 end
 
-if settings.UseSyntheticData == 1 && settings.Repeats > 1
+if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && settings.Repeats > 1
     disp('Setting repeats to 1.')
     settings.Repeats = 1;
 end
@@ -128,21 +128,24 @@ if ~exist(settings.filepath,'dir')
     mkdir(settings.filepath);
 end
 
-if settings.Global_T1 == 1
+if settings.Global_T1 == 1 && (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     % Overwrite synthetic T1s with a single global value
     disp('Fixed global T1 value.');
+elseif (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
+    settings.T1s = 0;
+    disp('Using synthetic T1s, not those specified in settings.T1s.');
 end
 
 if strcmpi(settings.Scheme,'GRE') && ~strcmpi(settings.LoopFieldName2,'Coil_Cycle_Order')
-    if settings.Coil_Cycle == 0
+    if strcmpi(settings.Coil_Cycle,'SS') || strcmpi(settings.Coil_Cycle,'SW')
         settings.Coil_Cycle_Order = 1:8;
-    elseif settings.Coil_Cycle == 1
+    elseif strcmpi(settings.Coil_Cycle,'CC')
         settings.Coil_Cycle_Order = [1,4,7,2,5,8,3,6];
     end
 end
 
 if isfield(settings,'Coil_Cycle') && isfield(settings,'Coil_Cycle_Order')
-    if settings.Coil_Cycle == 1
+    if strcmpi(settings.Coil_Cycle,'CC')
         disp(['Coil cycling is turned on. Coil-order: ',num2str(settings.Coil_Cycle_Order)]);
     else
         disp(['Coil cycling is turned off. Coil-order: ',num2str(settings.Coil_Cycle_Order)]);
@@ -155,9 +158,19 @@ if strcmpi(settings.Scheme,'GRE')
     settings.RF_Pulse = Get_RF_Pulse(settings.nom_FA,settings.RF_Type,settings.RF_Time,settings.RF_TBP,settings.Ref_Voltage);
 end
 
-if settings.UseSyntheticData == 1
-    [settings.Dynamic_Range,settings.Tx_FA_map,settings.Enc_Mat] = Calc_Tx(max(settings.RF_Pulse),settings); % Now pulse voltages are known, we can calculate the associated transmit field
+if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
+    % Now pulse voltages are known, we can calculate the associated transmit field
+    
+    % These are the ground truth mode transmit maps
+    [settings.Dynamic_Range,settings.Tx_FA_map,settings.Enc_Mat] = Calc_Tx(max(settings.RF_Pulse),settings);
     disp(['Multi-transmit mode mapping is active. Simulating B1 Mapping of ', num2str(size(settings.Tx_FA_map,3)),' Transmit Mode Configuration.']);
+    
+    % These are the ground truth single-channel maps
+    if settings.Modes > 1 && ~strcmpi(settings.Enc_Scheme,'Indiv')
+        [~,settings.GT_Tx_FA_map,~] = Calc_Tx(max(settings.RF_Pulse),settings,Calc_Enc_Mat('Indiv',settings.Modes));
+    else
+        settings.GT_Tx_FA_map = settings.Tx_FA_map;
+    end
 end
 
 % Calculate slice ordering
@@ -176,7 +189,7 @@ else % Simulate sequence
     % Process simulation results
     [results] = analysis_function_core(simulation_results, settings,results);
     
-    if length(settings.Dynamic_Range) > 100 && settings.UseSyntheticData == 0
+    if length(settings.Dynamic_Range) > 100 && ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
         [Dynamic_Range,DR_Values] = Calc_Dynamic_Range(results,settings,plot_settings);
         results.Dynamic_Range = Dynamic_Range;
         results.DR_Values = DR_Values;

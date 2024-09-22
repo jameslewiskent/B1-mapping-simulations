@@ -4,7 +4,7 @@ RF_Samples = 1e3; % Default sample size
 
 % Reference Pulse
 Ref_RF_Samples = 500;
-Ref_RF_Pulse_Time = 0.5e-3; % 0.5 ms RECT pulse achieves 90 degree FA
+Ref_RF_Pulse_Time = 0.5e-3; % 0.5 ms RECT pulse achieves 90 degree FA at the reference voltage
 Ref_RF_Pulse_Shape = ones(1,Ref_RF_Samples);
 Ref_Amp_Integral = abs(sum(abs(Ref_RF_Pulse_Shape).*exp(1i*angle(Ref_RF_Pulse_Shape))));
 Ref_RF_Sample_Time = Ref_RF_Pulse_Time/Ref_RF_Samples; 
@@ -42,6 +42,5 @@ Time_Scale = (Ref_RF_Sample_Time./RF_Sample_Time);
 
 % Scale pulse voltage based on amplitude integral
 RF_Pulse = (2*nom_FA/pi)*RF_Pulse_Shape*Amp_Integral_Scale*Time_Scale*Ref_Voltage;
-
 end
 

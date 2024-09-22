@@ -23,10 +23,10 @@ end
 if any(Mag_Track_DRValues == Dynamic_Range_n) && any(settings.Mag_Track_T1Values == settings.T1s(T1_n)) && settings.B0_Range_Hz(B0_n) == 0 && settings.Velocities(Flow_n) == 0 && settings.Diff_coeffs(Diff_n) == 0
     settings.Mag_Track_Flags = Mag_Track_DRValues == Dynamic_Range_n;
     %disp('Tracking Magnetisation')
-elseif settings.UseSyntheticData == 1
+elseif (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     % Convert given index to value in long array
     for Flag_n = 1:size(settings.Mag_Track_SynInd,1)
-        Mag_Track_Long_SynInd(Flag_n) = sub2ind([139,178],settings.Mag_Track_SynInd(Flag_n,1),settings.Mag_Track_SynInd(Flag_n,2));
+        Mag_Track_Long_SynInd(Flag_n) = sub2ind(size(settings.Tx_FA_map,1:2),settings.Mag_Track_SynInd(Flag_n,1),settings.Mag_Track_SynInd(Flag_n,2));
         if Dynamic_Range_n == Mag_Track_Long_SynInd(Flag_n)
             settings.Mag_Track_Flags(Flag_n) = 1;
         else

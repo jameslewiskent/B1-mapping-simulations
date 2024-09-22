@@ -2,8 +2,8 @@ function [Body_Mask, Heart_Mask, Synthetic_T1s] = Create_Synthetic_Masks(Slice_N
 % Create masks and T1 maps of synthetic body data.
 % Assign T1 values to synthetic data
 
+if strcmpi(settings.UseSyntheticData,'Duke')
 SyntheticDuke = load(['Data',filesep,'SyntheticDuke.mat']); % Reads in if current folder is Masterscript
-
 % Centre body in FOV
 B1Tx = circshift(SyntheticDuke.B1Tx,15,1); % Transmit field 139 x 178 x 124 slices x 8 channels
 B1Rx = circshift(SyntheticDuke.B1Rx,15,1);
@@ -46,6 +46,13 @@ Body_T1s(Body_T1s < 0.5 & Body_T1s > 0) = 0.5;
 % Replace T1s in heart with specified values
 Body_T1s(Heart_Mask) = Heart_T1s(Heart_Mask);
 Synthetic_T1s = Body_T1s;
+elseif strcmpi(settings.UseSyntheticData,'Phantom')
+WaterPhantom = load(['Data',filesep,'WaterPhantom.mat']); % Reads in if current folder is Masterscript
+Body_Mask = WaterPhantom.Mask;
+Heart_Mask = WaterPhantom.Mask;
+Synthetic_T1s = WaterPhantom.Mask.*settings.T1s(1);
+disp(['Synthetic T1s using first T1 value in settings.T1s array. T1 = ',num2str(settings.T1s(1)),' s.'])
+end
 
 end
 

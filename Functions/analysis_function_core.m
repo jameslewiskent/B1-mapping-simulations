@@ -21,12 +21,12 @@ results.FWHM = cat(1,FWHM1,FWHM2,FWHM3);
 % Calculate FA
 [results.Measured_FA] = Calc_FA(settings,results.Max_Val_IT1,results.Max_Val_IT2,results.Max_Val_IT3);
 
-if settings.UseSyntheticData == 1
+if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     % Reshape long synthetic data to image (might be a single mode (e.g. CP) or multitransmit)
     Image_Maps = reshape(permute(results.Measured_FA,[4,2,3,1,5,6,7,8,9]),[size(settings.Tx_FA_map),1,size(results.Measured_FA,5:ndims(results.Measured_FA))]);
     
     % Perform unencoding
-    if settings.MTx == 1
+    if settings.Modes > 1 && ~strcmpi(settings.Enc_Scheme,'Indiv')
         Image_Maps = Pixelwise_Unencoding(settings,Image_Maps);
     end
     

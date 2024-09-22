@@ -28,7 +28,7 @@ else
 end
 clearvars IT Reorder
 
-if settings.UseSyntheticData == 0
+if ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     Reordered_IT = Reordered_IT(:,settings.Centre_Slice,:,:,:,:,:,:,:,:); % Select Centre slice
 end
 
@@ -76,7 +76,7 @@ end
 FT_IT = IT_Noisy;
 clearvars IT_Noisy
 
-if settings.UseSyntheticData == 0 && size(FT_IT,4) ~= 1 && ~isfield(settings,'LoopValues')
+if ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && size(FT_IT,4) ~= 1 && ~isfield(settings,'LoopValues')
     % Evaluate abs FWHM for all readout
     centre_index = floor(size(FT_IT,2)/2 +1);
     figure('Name',['FFT of IT for ',settings.Scheme,' sequence'],'color','w')

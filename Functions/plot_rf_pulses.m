@@ -127,5 +127,20 @@ xlabel('B_1 Dynamic Range');
 title('RF Pulse');
 end
 
+if exist('PP_mz','var')
+    figure('color','w')
+    plot(B0_Hz,PP_mz(:,find(settings.Dynamic_Range == 1)),'linewidth',2); hold on
+    plot(B0_Hz,PP_mz(:,find(settings.Dynamic_Range == 2)),'linewidth',2);
+    plot(B0_Hz,PP_mz(:,find(settings.Dynamic_Range == 3)),'linewidth',2);
+    leg = legend('1','2','3');
+    title(leg,'DR')
+    xlabel('B_0, [kHz]'); 
+    ylabel('M_z, [a.u.]'); 
+    ylim([-1 1])
+    xticks([-5000:1000:5000])
+    axis square
+    grid on
+end
+
 end
 

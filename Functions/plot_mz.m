@@ -24,7 +24,7 @@ else
     nCols = 2;
 end
 
-if settings.UseSyntheticData == 0
+if ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
 lgd = legend(sprintfc('%g', settings.Mag_Track_FAValues),'Location','South','Orientation','vertical','NumColumns',nCols);
 lgd.Title.String = ['Nominal FA, [',char(176),']'];
 end

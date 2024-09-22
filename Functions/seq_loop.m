@@ -35,16 +35,16 @@ for Dynamic_Range_n = 1:size(settings.Dynamic_Range,2)
     end
     
     % If synthetic data is being used then don't bother simulating values not in the mask
-    if settings.UseSyntheticData == 0 || (settings.UseSyntheticData == 1 && settings.Long_Synthetic_Mask(Dynamic_Range_n))
+    if ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) || ((strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && settings.Long_Synthetic_Mask(Dynamic_Range_n))
         for T1_n = 1:length(settings.T1s)
-            if settings.UseSyntheticData == 1 && settings.Global_T1 ~= 1
+            if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && settings.Global_T1 ~= 1
                 T1 = settings.Long_Synthetic_T1s(Dynamic_Range_n);
             else
                 T1 = settings.T1s(T1_n);
             end
             
             for B0_n = 1:length(settings.B0_Range_Hz)
-                if settings.UseSyntheticData == 1 && all(settings.Dynamic_Range(:,Dynamic_Range_n) == 0)
+                if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && all(settings.Dynamic_Range(:,Dynamic_Range_n) == 0)
                     break
                 end
                 
@@ -57,7 +57,7 @@ for Dynamic_Range_n = 1:size(settings.Dynamic_Range,2)
                         PP_FAs(Mode_n,:) = Simulate_RF_Pulse(settings.Hz_per_Volt*abs(settings.Dynamic_Range(Mode_n,Dynamic_Range_n))*settings.PP_RF_Pulse,settings.PP_RF_Time,settings.B0_Range_Hz(B0_n),settings.Slice_Positions,T1,settings.T2,settings.Gamma); % Output FA in radians
                     end
                 end
-                if settings.UseSyntheticData == 1
+                if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
                     % Set RF phase if synthetic data is being used
                     RF_Phase = angle(settings.Dynamic_Range(:,Dynamic_Range_n));
                 else
@@ -69,11 +69,11 @@ for Dynamic_Range_n = 1:size(settings.Dynamic_Range,2)
                         for Repeat_n = 1:NRepeats
                             
                             % Is this a voxel in the blood pool?
-                            if settings.UseSyntheticData == 1 && settings.Long_Synthetic_T1s(Dynamic_Range_n) == settings.T1_blood
+                            if (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom')) && settings.Long_Synthetic_T1s(Dynamic_Range_n) == settings.T1_blood
                                 Ejection_Fraction = 0;
                                 Velocity = settings.Velocities(Flow_n);
                                 Angle = settings.Angles(Flow_n);
-                            elseif settings.UseSyntheticData == 1
+                            elseif (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
                                 Ejection_Fraction = settings.Ejection_Fraction;
                                 Velocity = 0;
                                 Angle = 0;

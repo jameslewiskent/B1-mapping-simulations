@@ -46,7 +46,7 @@ settings.T1Corr = 0; % Additional image train for T1 correction (experimental mo
 settings.IT_TE = 0.87e-3; % Image Train Echo Time (s)
 settings.IT_TR = 2.7e-3; % Image Train Repitition Time (s)
 settings.TR = 1; % Long TR time (s)
-settings.Dummy_Scans = 2; % Add 'dummy' scans which help achieve steady-state
+settings.Dummy_Scans = 1; % Add 'dummy' scans which help achieve steady-state
 settings.Dummy_ITRF = 0; % Add 'dummy' RF pulses prior to reference image train which help achieve steady-state (not prior to prepared image train)
 settings.Segment_Factor = 1;
 settings.RF_Spoiling = 1; % RF_Spoiling on (1) or off (0)
@@ -54,7 +54,7 @@ settings.RF_Spoiling_Increment = 50*(pi/180);
 settings.PE1_Reordering = 'CentricInOut'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 settings.PE2_Reordering = 'LinearUp'; % Reordering of phase encodes, 'CentricOut', 'CentricIn', 'CentricInOut', 'LinearUp', 'LinearDown'.
 
-settings.perform_relative_mapping = 0; % Simulate relative mapping prior to absolute maps7
+settings.perform_relative_mapping = 0; % Simulate relative mapping prior to absolute maps
 settings.noadd = 0; % = 1 to NOT add any higher-order states to spoilers. This speeds up simulations, compromises accuracy!
 settings.man_spoil = 1; % Sets transverse magnetisation to 0 (if =1) assumes 'perfect' spoiling - useful for debugging
 settings.kg = 50e3; % k-space traversal due to gradient (rad/m) for diffusion/flow
