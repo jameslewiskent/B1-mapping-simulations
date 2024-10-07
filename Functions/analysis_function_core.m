@@ -4,19 +4,19 @@ function [results] = analysis_function_core(simulation_results, settings,results
 disp('Starting analysis.')
 
 [results.Max_Val_IT1,FWHM1] = Process_IT(settings,simulation_results.IT1,1);
+results.FWHM = FWHM1;
 if isfield(simulation_results,'IT2')
     [results.Max_Val_IT2,FWHM2] = Process_IT(settings,simulation_results.IT2,2);
+    results.FWHM = cat(1,FWHM1,FWHM2);
 else
     results.Max_Val_IT2 = NaN;
-    FWHM2 = NaN(size(FWHM1));
 end
 if settings.T1Corr == 1
     [results.Max_Val_IT3,FWHM3] = Process_IT(settings,simulation_results.IT3,3);
+    results.FWHM = cat(1,FWHM1,FWHM2,FWHM3);
 else
     results.Max_Val_IT3 = NaN;
-    FWHM3 = NaN(size(FWHM1));
 end
-results.FWHM = cat(1,FWHM1,FWHM2,FWHM3);
 
 % Calculate FA
 [results.Measured_FA] = Calc_FA(settings,results.Max_Val_IT1,results.Max_Val_IT2,results.Max_Val_IT3);

@@ -1,6 +1,6 @@
 function plot_FWHM(results,settings,plot_settings)
 B0_n = 1;
-T1_n = 3;
+T1_n = find(settings.T1s == 1.5);
 Flow_n = 1;
 Diff_n = 1;
 

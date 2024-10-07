@@ -7,8 +7,13 @@ gmmaHzPerG = 1e-4*Gamma;  % 1e-4 is MHz/T to Hz/G
 
 % Hz to G = b1_Hz/Gamma
 b1 = (RF_Pulse/gmmaHzPerG)'; % excitation RF field in units of Hz
-gr = zeros(size(RF_Pulse,2),3); % gradients (NOT USED)
 time_points = ones(size(RF_Pulse,2),1)*(RF_Pulse_Time./size(RF_Pulse,2)); % time (in seconds)
+
+if any(Slice_Positions(:,1) ~= 0)
+    gr = [ones(size(RF_Pulse,2),1).*0.5,zeros(size(RF_Pulse,2),2)]; % gradients 1,2 or 3-dimensional gradient in G/cm. 5mT/m = 0.5G/cm    
+else
+    gr = zeros(size(RF_Pulse,2),3); % gradients (NOT USED) 1,2 or 3-dimensional gradient in G/cm.
+end
 
 if ispc || ismac
     [~,~,mz] = bloch(b1,gr,time_points,T1,T2,B0_Hz',Slice_Positions,0,M(1),M(2),M(3));

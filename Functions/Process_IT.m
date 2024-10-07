@@ -89,7 +89,7 @@ if ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticD
     xlabel('Index');
 end
 
-FWHM = zeros([2,2,size(FT_IT,4:ndims(FT_IT))]);
+FWHM = zeros([1,2,size(FT_IT,4:ndims(FT_IT))]);
 if settings.Calc_FWHM == 1 % Measure FWHM (can take a while)
     for Dynamic_Range_n = 1:size(FT_IT,4)
         for B0_Range_n = 1:size(FT_IT,5)
@@ -99,7 +99,7 @@ if settings.Calc_FWHM == 1 % Measure FWHM (can take a while)
                         for Noise_n = 1:size(FT_IT,9)
                             for Repeat_n = 1:size(FT_IT,10)
                                 FWHM(1,1,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n) = findFWHM(FT_IT(:,floor(size(FT_IT,2)/2 +1),:,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n));
-                                if size(FT_IT,2) > 1
+                                if size(FT_IT,2) > 1 % Second phase encoding direction
                                     FWHM(1,2,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n) = findFWHM(FT_IT(floor(size(FT_IT,1)/2 +1),:,:,Dynamic_Range_n,B0_Range_n,T1_n,Flow_n,Diff_n,Noise_n,Repeat_n)');
                                 end
                             end

@@ -14,14 +14,14 @@ addpath(genpath('Functions')); load('initialise.mat');
 settings.MSor3D = '3D'; % 2D or 3D or default
 settings.Scheme = 'Sandwich'; % Simulate Chosen Pulse Sequence(s) 'SatTFL', 'Sandwich', 'DREAM', 'AFI', 'SA2RAGE' or 'ALL' which uses default sequence settings
 settings.Dynamic_Range = 0:0.01:3; % Simulate a large dynamic range of B1
-settings.B0_Range_Hz = 0;% [0,100,500,1000]; % B0 offsets (Hz)
+settings.B0_Range_Hz = 0; % [0,100,500,1000]; % B0 offsets (Hz)
 settings.T1s = [0.5,1,1.5,2,2.5,3]; % Array of T1 values to simulate (s)
 settings.T2 = 25e-3; % T2 (s)
-settings.Repeats = 1000; % Number of noise repeats to average
+settings.Repeats = 1; % Number of noise repeats to average
 settings.Noise = [NaN,60]; % Simulated Noise Levels (peak SNR in Decibels) (NaN is no noise, used for generating lookup table)
-settings.Velocities = 0;%[0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
-settings.Angles = 0;%[0,0,0,0]; % Angle of coherent flow (rad)
-settings.Diff_coeffs = 0;%[0,3e-9]; % Diffusion co-efficient (m^2/s) (isotropic)
+settings.Velocities = 0; % [0,0.05,0.1,0.2]; % Velocity of coherent flow (m/s)
+settings.Angles = 0; % [0,0,0,0]; % Angle of coherent flow (rad)
+settings.Diff_coeffs = 0; % [0,3e-9]; % Diffusion co-efficient (m^2/s) (isotropic)
 settings.Matrix_Size = [32 32]; % [NPE1 1] for single-slice or [NPE1 NPE2] for volumetric sequence simulation
 settings.PE1_Resolution = 1; % 4/8, 5/8, 6/8, 7/8 or 1
 settings.PE1_Partial_Fourier = 1; % 4/8, 5/8, 6/8, 7/8 or 1
@@ -81,5 +81,6 @@ plot_settings.Dyn_Range_pc = 0.1; % DR defined as linear range where the differe
 plot_settings.Dynamic_Range_Axis = 0;
 plot_settings.Plot_Difference = 1;
 plot_settings.Show_Dyn_Range = 1; % Plots green box over dynamic range
+plot_settings.Run_Anyway = 1; % Override check_if_already_ran and re-run simulations anyway and ask whether to delete previous result (useful if functions might have changed but inputs are the same)
 
 [results,settings] = run_and_plot(settings,plot_settings,results);

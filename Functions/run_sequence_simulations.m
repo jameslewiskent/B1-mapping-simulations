@@ -128,6 +128,13 @@ if ~exist(settings.filepath,'dir')
     mkdir(settings.filepath);
 end
 
+
+if (strcmpi(settings.LoopFieldName,'T1s') || strcmpi(settings.LoopFieldName2,'T1s')) && settings.Global_T1 ~= 1
+    settings.Global_T1 = 1; 
+    disp('Additional loop field is T1s, therefore switching on settings.Global_T1.');
+end
+
+
 if settings.Global_T1 == 1 && (strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticData,'Phantom'))
     % Overwrite synthetic T1s with a single global value
     disp('Fixed global T1 value.');
@@ -176,11 +183,21 @@ end
 % Calculate slice ordering
 settings = Calc_Slice_Order(settings);
 
-% Check if simulations already ran
-[already_ran,settings.filename] = check_if_already_ran(settings);
+if plot_settings.Run_Anyway == 0
+    % Check if simulations already ran
+    [already_ran,settings.filename] = check_if_already_ran(settings);
+else
+    % Check if simulations already ran and delete if required
+    [~,filename_to_delete] = check_if_already_ran(settings);
+    already_ran = 0;
+    %if input('Delete previous run? 0 for no, 1 for yes: ') == 1
+        delete(fullfile(settings.filepath,filename_to_delete));
+        %disp(['Deleting: ',fullfile(settings.filepath,filename_to_delete)])
+    %end
+end
 
 if already_ran % Don't re-simulate if input parameters unchanged
-    disp('Input parameters unchanged - results not re-simulated.')
+    disp(['Input parameters unchanged - results not re-simulated. Loading: ',fullfile(settings.filepath,settings.filename)])
     load(fullfile(settings.filepath,settings.filename),'results')
     
 else % Simulate sequence

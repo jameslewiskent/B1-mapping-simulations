@@ -414,7 +414,7 @@ if strcmp(settings.LoopFieldName,'Coil_Cycle')
         annotation('textbox',[0.197770193779515,0.775593773133434,0.285407731487003,0.133906636366973],'String',[text1,newline,text2],'FitBoxToText','on','BackgroundColor','w','HorizontalAlignment','center');
         if strcmpi(settings.UseSyntheticData,'Duke')
             ah1 = axes('position',get(gca,'position'),'visible','off');
-            leg2 = legend(ah1, [p3 p4], 'Body','Heart', 'Location',[0.708965485462648,0.788185910842733,0.144670960405183,0.112100739443917]); leg2.ItemTokenSize(1) = 10;
+            leg2 = legend(ah1, [p3 p4], 'Body','Heart', 'Location',[0.695553468295266,0.788185910842733,0.144670960405183,0.112100739443917]); leg2.ItemTokenSize(1) = 10;
         end
     end
     
