@@ -79,8 +79,8 @@ settings.Format = {'PE1','PE2','Tx','DR','B0','T1','Flow','Diff','Noise','Repeat
 % ---------------------------------------------------------------------- %
 plot_settings.Dyn_Range_pc = 0.1; % DR defined as linear range where the difference in the mean flip angle and standard deviation is less than settings.Dyn_Range_pc (e.g. 7%) of the nominal value
 plot_settings.Dynamic_Range_Axis = 0;
-plot_settings.Plot_Difference = 1;
-plot_settings.Show_Dyn_Range = 1; % Plots green box over dynamic range
-plot_settings.Run_Anyway = 1; % Override check_if_already_ran and re-run simulations anyway and ask whether to delete previous result (useful if functions might have changed but inputs are the same)
+plot_settings.Plot_Difference = 1; % Subtract actual from measured flip angle
+plot_settings.Show_Dyn_Range = 1; % Plots translucent green box over the measured dynamic range
+plot_settings.Run_Anyway = 0; % Override check_if_already_ran and re-run simulations anyway and ask whether to delete previous result (useful if functions might have changed but inputs are the same)
 
 [results,settings] = run_and_plot(settings,plot_settings,results);

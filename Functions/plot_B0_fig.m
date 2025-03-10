@@ -67,7 +67,9 @@ elseif plot_settings.Dynamic_Range_Axis == 0 && plot_settings.Plot_Difference ==
 end
 
 if plot_settings.Show_Dyn_Range == 1
-    rectangle('Position', [Dynamic_Range_Values(1)./Dynamic_Range_Value, -x_max, (Dynamic_Range_Values(2)./Dynamic_Range_Value)-(Dynamic_Range_Values(1)./Dynamic_Range_Value), 2.*x_max],'FaceColor', [0, 0.6, 0, 0.2], 'EdgeColor', [0, 0.6, 0, 0.2]);
+    % JK in R2024b, 4th colour arguement stopped alpha channel working, so
+    % added ,'FaceAlpha',0.2
+    rectangle('Position', [Dynamic_Range_Values(1)./Dynamic_Range_Value, -x_max, (Dynamic_Range_Values(2)./Dynamic_Range_Value)-(Dynamic_Range_Values(1)./Dynamic_Range_Value), 2.*x_max],'FaceColor', [0, 0.6, 0, 0.2],'FaceAlpha',0.2, 'EdgeColor', [0, 0.6, 0, 0.2]);
 end
 
 end

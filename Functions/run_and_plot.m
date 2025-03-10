@@ -12,6 +12,11 @@ if isempty(find(~isnan(settings.Noise), 1))
     warning('Dynamic range plot requested for data where no noise was simulated. The dynamic range calculated is not valid without noise present. Turning off dynamic range plotting.')
 end
 
+if ~isfield(settings,'LoopValues')
+    settings.LoopFieldName = 'NaN';
+    settings.LoopValues = NaN;
+end
+
 if ~isfield(settings,'LoopValues2')
     settings.LoopFieldName2 = 'NaN';
     settings.LoopValues2 = NaN;
@@ -60,7 +65,7 @@ if ~(strcmpi(settings.UseSyntheticData,'Duke') || strcmpi(settings.UseSyntheticD
         end
     else
         
-        if isfield(settings,'LoopValues') % Can add other loops here if you wish
+        if ~isnan(settings.LoopValues) % Can add other loops here if you wish
             for Additional_Loop_Counter = 1:size(settings.LoopValues,1)
                 settings.Additional_Loop_Counter = Additional_Loop_Counter;
                 
@@ -160,7 +165,7 @@ else
     if settings.Modes > 1 && ~strcmpi(settings.Enc_Scheme,'Indiv')
         tx2_h = figure('color','w'); tiledlayout(tx2_h,'flow','tilespacing','compact','padding','none');
     end
-    if isfield(settings,'LoopValues') % Can add other loops here if you wish
+    if ~isnan(settings.LoopValues) % Can add other loops here if you wish
         for Additional_Loop_Counter = 1:size(settings.LoopValues,1)
             settings.Additional_Loop_Counter = Additional_Loop_Counter;
             
